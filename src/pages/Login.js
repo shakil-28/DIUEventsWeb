@@ -6,18 +6,25 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
-        {/* Left Side with background image */}
-        <div
-            className="hidden md:flex w-full md:w-1/2 bg-cover bg-center relative"
-            style={{ backgroundImage: "url('/assets/images/LoginBackground.png')" }}
-        >
-            <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center text-white p-8">
-            <h2 className="text-3xl font-bold mb-2 text-center">Welcome to DIU Events</h2>
-            <p className="text-lg text-center max-w-md">
-                Your Gateway to Campus Life – Stay updated with all the latest university events!
-            </p>
-            </div>
-        </div>
+{/* Left Side with background image */}
+<div
+  className="hidden md:flex w-full md:w-1/2 bg-cover bg-center relative shadow-inner-xl"
+  style={{ backgroundImage: "url('/assets/images/LoginBackground.png')" }}
+>
+  <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center text-white p-8">
+    
+    {/* Logo Image */}
+<img
+  src="/assets/images/darkLogo.svg"
+  alt="DIU Logo"
+  className="w-20 h-20 mb-4"
+/>
+    <h2 className="text-3xl font-bold mb-2 text-center">Welcome to DIU Events</h2>
+    <p className="text-lg text-center max-w-md">
+      Your Gateway to Campus Life – Stay updated with all the latest university events!
+    </p>
+  </div>
+</div>
 
         {/* Right Side - Login Form */}
         <div className="w-full md:w-1/2 flex items-center justify-center p-6 md:p-10 bg-white dark:bg-gray-800 transition-colors duration-300">
