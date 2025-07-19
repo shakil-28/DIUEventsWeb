@@ -1,11 +1,7 @@
 import './App.css';
-import LoginPage from './components/LoginPage';
 import { NavBar } from './components/NavBar';
 import { TopEvents } from './components/TopEvents';
-
-
-
-
+import Login from './pages/Login';
 
 function App() {
 
@@ -13,7 +9,10 @@ function App() {
     <div className='flex-col space-y-2 dark:bg-slate-900'>
       <NavBar />
       <TopEvents />
-      <LoginPage />
+
+      <Login></Login>
+
+      
     </div>
 
   );
