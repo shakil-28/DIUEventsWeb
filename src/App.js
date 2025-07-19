@@ -1,20 +1,51 @@
-import './App.css';
-import { NavBar } from './components/NavBar';
-import { TopEvents } from './components/TopEvents';
-import Login from './pages/Login';
+import "./App.css";
+import { useEffect } from "react";
+import { useAuth } from "./hooks/useAuth";
+import { Routes, Route, useNavigate } from "react-router-dom";
+import Login from "./pages/Login";
+import Home from "./pages/Home";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (
+      savedTheme === "dark" ||
+      (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches)
+    ) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, []);
+
+
+  // Redirect based on login state
+  useEffect(() => {
+    if (user) {
+      navigate("/home");
+    } else {
+      navigate("/login");
+    }
+  }, [user, navigate]);
 
   return (
-    <div className='flex-col space-y-2 dark:bg-slate-900'>
-      <NavBar />
-      <TopEvents />
-
-      <Login></Login>
-
-      
+    <div className="dark:bg-slate-900 min-h-screen">
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route
+          path="/home"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
     </div>
-
   );
 }
 
