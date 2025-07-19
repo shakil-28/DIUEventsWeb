@@ -31,7 +31,7 @@ export function TopEvents() {
 
   return (
     <div className="px-4 sm:px-6 md:px-10 lg:px-20 py-3">
-        <h3 className='text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white mb-2 text-center'>Top Events</h3>
+        <h3 className='text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white mb-2 text-left'>Top Events</h3>
 
         <Swiper
             modules={[Navigation, Pagination, Autoplay]}
@@ -56,7 +56,7 @@ export function TopEvents() {
                     />
                     <h3 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white">{event.title}</h3>
                     <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 mt-2">{event.location}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="py-4 text-xs text-gray-500 dark:text-gray-400">
                     {new Date(event.startingTime.seconds * 1000).toLocaleString()}
                     </p>
                 </div>
