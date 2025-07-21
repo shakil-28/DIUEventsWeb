@@ -25,13 +25,13 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-blue-100 to-indigo-200 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-blue-100 to-indigo-200 px-4 py-12">
       <div className="bg-white shadow-2xl rounded-3xl p-10 w-full max-w-2xl transition-all duration-300">
         <h2 className="text-3xl font-extrabold text-center text-indigo-700 mb-8 tracking-tight">
           🌟 Join DIU Events
         </h2>
         <form className="space-y-6">
-          {/* Name */}
+          {/* Full Name */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
               Full Name
