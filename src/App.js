@@ -4,7 +4,10 @@ import { useAuth } from "./hooks/useAuth";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
+import Register from "./pages/Register";
 import ProtectedRoute from "./components/ProtectedRoute";
+import EventDetailsPage from "./pages/EventDetailsPage";
+import ProfileEditPage from "./pages/ProfileEditPage";
 
 function App() {
   const { user } = useAuth();
@@ -21,7 +24,6 @@ function App() {
       document.documentElement.classList.remove("dark");
     }
   }, []);
-
 
   // Redirect based on login state
   useEffect(() => {
@@ -45,6 +47,9 @@ function App() {
           }
         />
       </Routes>
+      <Register />
+      <EventDetailsPage />
+      {/* <ProfileEditPage /> */}
     </div>
   );
 }
