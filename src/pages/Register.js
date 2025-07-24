@@ -91,7 +91,7 @@ export default function Register() {
           </div>
 
           {/* Notifications Toggle */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
             <span className="text-sm font-semibold text-gray-700">
               Enable Notifications
             </span>
