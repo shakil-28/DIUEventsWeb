@@ -4,16 +4,14 @@ import { useAuth } from "./hooks/useAuth";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
+import Register from "./pages/Register";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { getDoc, query } from "firebase/firestore";
-import { db } from "./firebase/config"
-
+import EventDetailsPage from "./pages/EventDetailsPage";
+import ProfileEditPage from "./pages/ProfileEditPage";
 
 function App() {
   const { user } = useAuth();
   const navigate = useNavigate();
-
-
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
@@ -29,19 +27,11 @@ function App() {
 
   // Redirect based on login state
   useEffect(() => {
-    const userNavigation = async () => {
-      if (!user) {
-        navigate('/login');
-      }
-      else if (1) {
-        navigate()
-      }
-      else {
-        navigate('/home');
-      }
-    };
-
-    userNavigation();
+    if (user) {
+      navigate("/home");
+    } else {
+      navigate("/login");
+    }
   }, [user, navigate]);
 
   return (
@@ -56,15 +46,9 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route 
-          path="/admin-dashboard"
-          element={
-            <ProtectedRoute>
-              
-            </ProtectedRoute>
-          }
-        />
       </Routes>
+      <Register />
+      <EventDetailsPage />
       {/* <ProfileEditPage /> */}
     </div>
   );

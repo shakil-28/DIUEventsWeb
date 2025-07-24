@@ -1,14 +1,13 @@
-import { auth } from '../firebase/auth';
+import { auth } from "../firebase/auth";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 
-
 export default function Login() {
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
   const { user } = useAuth();
 
@@ -20,15 +19,13 @@ export default function Login() {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      console.log("UID: ",user.uid);
-      
+      console.log("UID: ", user.uid);
+
       navigate("/home"); // Redirect after successful login
     } catch (err) {
       setError(err.message);
     }
   };
-
-
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
@@ -129,6 +126,5 @@ export default function Login() {
         </div>
       </div>
     </div>
-    
   );
 }

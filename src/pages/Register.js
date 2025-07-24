@@ -5,6 +5,7 @@ export default function Register() {
   const [notifications, setNotifications] = useState(true);
   const [selectedClubs, setSelectedClubs] = useState([]);
   const [currentClub, setCurrentClub] = useState("");
+  const [photo, setPhoto] = useState(null);
 
   const departments = ["CSE", "EEE", "BBA", "English", "Pharmacy"];
   const clubs = [
@@ -72,6 +73,71 @@ export default function Register() {
             />
           </div>
 
+          {/* Upload Photo */}
+          {/* Upload Photo */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Upload Photo
+            </label>
+
+            <div className="flex items-center gap-3 mt-1">
+              {photo ? (
+                <img
+                  src={photo}
+                  alt="Preview"
+                  className="w-20 h-20 rounded-full object-cover border border-gray-300 shadow-sm"
+                />
+              ) : (
+                <div className="w-20 h-20 rounded-full bg-gray-200 border border-dashed border-gray-400 flex items-center justify-center text-gray-500 text-xs">
+                  No Image
+                </div>
+              )}
+
+              <div>
+                <label
+                  htmlFor="photo-upload"
+                  className="cursor-pointer inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md shadow hover:bg-blue-700 transition duration-200"
+                >
+                  <svg
+                    className="w-4 h-4 mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3 7h4l2-3h6l2 3h4v13H3V7z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 11l3 4H9l3-4z"
+                    />
+                  </svg>
+                  Choose Image
+                </label>
+
+                <input
+                  id="photo-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = () => setPhoto(reader.result);
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                  className="hidden"
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Department Dropdown */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
@@ -118,29 +184,40 @@ export default function Register() {
             <div className="flex gap-2 mt-1">
               <select
                 value={currentClub}
-                onChange={(e) => setCurrentClub(e.target.value)}
+                onChange={(e) => {
+                  const selected = e.target.value;
+                  setCurrentClub(""); // reset selection
+
+                  if (selected && !selectedClubs.includes(selected)) {
+                    setSelectedClubs([...selectedClubs, selected]);
+                  }
+                }}
                 className="flex-grow px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-sm"
               >
                 <option value="">-- Choose a Club --</option>
-                {clubs.map((club, i) => (
-                  <option key={i} value={club}>
-                    {club}
-                  </option>
-                ))}
+                {clubs
+                  .filter((club) => !selectedClubs.includes(club))
+                  .map((club, i) => (
+                    <option key={i} value={club}>
+                      {club}
+                    </option>
+                  ))}
               </select>
-              <button
-                type="button"
-                onClick={handleAddClub}
-                className="bg-indigo-600 text-white p-3 rounded-xl hover:bg-indigo-700 flex items-center justify-center shadow-md"
-              >
-                <FaPlus size={14} />
-              </button>
             </div>
 
             {selectedClubs.length > 0 && (
               <ul className="mt-3 list-disc list-inside text-sm text-gray-700">
                 {selectedClubs.map((club, index) => (
-                  <li key={index}>{club}</li>
+                  <li
+                    key={index}
+                    onClick={() =>
+                      setSelectedClubs(selectedClubs.filter((c) => c !== club))
+                    }
+                    className="cursor-pointer hover:text-red-600"
+                    title="Click to remove"
+                  >
+                    {club}
+                  </li>
                 ))}
               </ul>
             )}
