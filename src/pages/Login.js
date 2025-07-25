@@ -1,27 +1,77 @@
-import { auth } from "../firebase/auth";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth, db } from "../firebase/config";
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useAuth } from "../hooks/useAuth";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
-  const { user } = useAuth();
 
   const navigate = useNavigate();
+
+  const handleGoogleLogin = async () => {
+    const provider = new GoogleAuthProvider();
+
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      const userDocRef = doc(db, "users", user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (!userDocSnap.exists()) {
+        navigate('/register');
+        return;
+      }
+
+      const userType = userDocSnap.data().role;
+
+      if (userType === "admin") {
+        navigate("/admin-dashboard");
+      } else if (userType === "club") {
+        navigate("/club-dashboard");
+      } else {
+        navigate("/home");
+      }
+
+    } catch (error) {
+      console.error("Google sign-in error:", error);
+      setError("Google sign-in failed. Please try again.");
+    }
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      console.log("UID: ", user.uid);
+      // 1. Sign in and get user info
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const uid = userCredential.user.uid;
 
-      navigate("/home"); // Redirect after successful login
+      console.log("Logged in UID:", uid);
+
+      // 2. Fetch Firestore user document
+      const userDocRef = doc(db, "users", uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (!userDocSnap.exists()) {
+        // User document missing → redirect to register page
+        return navigate("/register");
+      }
+
+      // 3. Get userType and redirect accordingly
+      const userType = userDocSnap.data().role;
+      console.log(userType);
+
+      if (userType === "admin") {
+        navigate("/admin-dashboard");
+      } else if (userType === "club") {
+        navigate("/club-dashboard");
+      } else {
+        navigate("/home");
+      }
     } catch (err) {
       setError(err.message);
     }
@@ -112,7 +162,7 @@ export default function Login() {
             {/* Google Button */}
             <button
               type="button"
-              onClick={() => alert("Google login triggered")}
+              onClick={handleGoogleLogin}
               className="w-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition flex items-center justify-center gap-2"
             >
               <img

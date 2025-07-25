@@ -8,13 +8,13 @@ import Register from "./pages/Register";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { getDoc, doc } from "firebase/firestore";
 import { db } from "./firebase/config";
-import AdminDashboard from './pages/AdminDashboard'
-
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth(); // assumes useAuth provides `loading`
   const navigate = useNavigate();
 
+  // Setup dark theme from localStorage or system preference
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
     if (
@@ -27,48 +27,49 @@ function App() {
     }
   }, []);
 
-  // Redirect based on login state
+  // Redirect user based on their role
   useEffect(() => {
-    const userNavigation = async () => {
+    if (loading) return; // Wait for auth status
 
+    const redirectUser = async () => {
       if (!user) {
-        navigate('/login');
+        navigate("/login");
         return;
       }
+
       try {
         const userDoc = await getDoc(doc(db, "users", user.uid));
+        
 
         if (!userDoc.exists()) {
-          navigate('/register')
+          navigate("/register");
           return;
         }
 
-        const userType = userDoc.data().userType;
+        const userType = userDoc.data().role;
+        console.log(userType);
 
         if (userType === "admin") {
-          navigate('/admin-dashboard');
-        }
-
-        else if (userType === "club") {
-          
-        }
-        else {
-          navigate('/home');
+          navigate("/admin-dashboard");
+        } else if (userType === "club") {
+          // Add route if needed for club users
+          navigate("/home");
+        } else {
+          navigate("/home");
         }
       } catch (error) {
-        console.error("Error fetching user data: ", error);
+        console.error("Error fetching user data:", error);
       }
     };
 
-    userNavigation();
-  }, [user, navigate]);
+    redirectUser();
+  }, [user, loading, navigate]);
 
   return (
     <div className="dark:bg-slate-900 min-h-screen">
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={ <Register /> }/>
-
+        <Route path="/register" element={<Register />} />
         <Route
           path="/home"
           element={
@@ -77,7 +78,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route 
+        <Route
           path="/admin-dashboard"
           element={
             <ProtectedRoute>
@@ -86,9 +87,6 @@ function App() {
           }
         />
       </Routes>
-      <Register />
-      <EventDetailsPage />
-      {/* <ProfileEditPage /> */}
     </div>
   );
 }

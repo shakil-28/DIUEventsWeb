@@ -21,7 +21,7 @@ export default function Home() {
 
 
   return (
-    <div className='flex-col space-y-2 dark:bg-slate-900'>
+    <div className='flex-col space-y-4 dark:bg-slate-900'>
         <NavBar />
         <TopEvents />
 

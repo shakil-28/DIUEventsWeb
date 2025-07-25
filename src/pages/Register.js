@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { FaPlus } from "react-icons/fa";
 
 export default function Register() {
   const [notifications, setNotifications] = useState(true);
@@ -17,13 +16,6 @@ export default function Register() {
     "DIU Film Society",
     "Change Together Club",
   ];
-
-  const handleAddClub = () => {
-    if (currentClub && !selectedClubs.includes(currentClub)) {
-      setSelectedClubs([...selectedClubs, currentClub]);
-      setCurrentClub("");
-    }
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-blue-100 to-indigo-200 px-4 py-12">
