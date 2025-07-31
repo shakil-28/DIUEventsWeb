@@ -9,6 +9,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { getDoc, doc } from "firebase/firestore";
 import { db } from "./firebase/config";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminProfile from "./pages/AdminProfile";
 
 function App() {
   const { user, loading } = useAuth(); // assumes useAuth provides `loading`
@@ -39,7 +40,6 @@ function App() {
 
       try {
         const userDoc = await getDoc(doc(db, "users", user.uid));
-        
 
         if (!userDoc.exists()) {
           navigate("/register");
@@ -87,6 +87,7 @@ function App() {
           }
         />
       </Routes>
+      <AdminProfile />
     </div>
   );
 }
