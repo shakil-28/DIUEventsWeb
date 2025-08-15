@@ -10,16 +10,10 @@ export default function AdminProfile() {
     fullName: "Nayem Hasan",
     email: "admin@example.com",
     phone: "+8801234567890",
-    fatherName: "Mr. Abdur Rahim",
-    fatherContact: "+8801234567000",
-    motherName: "Mrs. Rahima",
-    motherContact: "+8801234567001",
     university: "Daffodil International University",
     degree: "Bachelor",
     present: "Dhaka, Bangladesh",
     permanent: "Gazipur, Bangladesh",
-    guardian: "Mr. Karim",
-    guardianContact: "+8801234567002",
   });
 
   const handleChange = (e) => {
@@ -189,52 +183,6 @@ export default function AdminProfile() {
             />
           </div>
 
-          {/* Father, Mother, Guardian Info */}
-          {["father", "mother", "guardian"].map((role) => (
-            <div key={role} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label
-                  htmlFor={`${role}Name`}
-                  className="block text-sm font-semibold text-gray-700 mb-1"
-                >
-                  {role.charAt(0).toUpperCase() + role.slice(1)}'s Name
-                </label>
-                <input
-                  type="text"
-                  id={`${role}Name`}
-                  value={formData[`${role}Name`]}
-                  onChange={handleChange}
-                  readOnly={!isEditing}
-                  className={`w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-sm ${
-                    isEditing ? "bg-white" : "bg-gray-100"
-                  }`}
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor={`${role}Contact`}
-                  className="block text-sm font-semibold text-gray-700 mb-1"
-                >
-                  {role === "guardian"
-                    ? "Contact"
-                    : `${
-                        role.charAt(0).toUpperCase() + role.slice(1)
-                      }'s Contact`}
-                </label>
-                <input
-                  type="text"
-                  id={`${role}Contact`}
-                  value={formData[`${role}Contact`]}
-                  onChange={handleChange}
-                  readOnly={!isEditing}
-                  className={`w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-sm ${
-                    isEditing ? "bg-white" : "bg-gray-100"
-                  }`}
-                />
-              </div>
-            </div>
-          ))}
-
           {/* Degree */}
           <div>
             <label
@@ -253,9 +201,9 @@ export default function AdminProfile() {
               }`}
             >
               <option value="">Select Option</option>
+              <option value="Undergraduate">Undergraduate</option>
               <option value="Bachelor">Bachelor</option>
               <option value="Masters">Masters</option>
-              <option value="Graduated">Graduated From</option>
             </select>
           </div>
 

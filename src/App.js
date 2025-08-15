@@ -87,7 +87,9 @@ function App() {
           }
         />
       </Routes>
+      <AdminDashboard />
       <AdminProfile />
+      <Register />
     </div>
   );
 }
