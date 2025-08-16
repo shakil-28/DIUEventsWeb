@@ -11,6 +11,7 @@ import { db } from "./firebase/config";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminProfile from "./pages/AdminProfile";
 import AdminUserManagement from "./pages/AdminUserManagement";
+import PendingEvents from "./pages/PendingEvent";
 
 function App() {
   const { user, loading } = useAuth(); // assumes useAuth provides `loading`
@@ -91,7 +92,8 @@ function App() {
       <AdminDashboard />
       <AdminProfile />
       <Register />
-      <AdminUserManagement/>
+      <AdminUserManagement />
+      <PendingEvents />
     </div>
   );
 }
