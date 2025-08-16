@@ -10,7 +10,8 @@ import { getDoc, doc } from "firebase/firestore";
 import { db } from "./firebase/config";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminUserManagement from "./pages/AdminUserManagement";
-import PendingEvents from "./pages/PendingEvent";
+import AdminPendingEvents from "./pages/AdminPendingEvents";
+import AdminApprovedEvents from "./pages/AdminApprovedEvents";
 
 function App() {
   const { user, loading } = useAuth(); // assumes useAuth provides `loading`
@@ -97,7 +98,8 @@ function App() {
         />
       </Routes>
       <AdminUserManagement />
-      <PendingEvents />
+      <AdminPendingEvents />
+      <AdminApprovedEvents />
     </div>
   );
 }

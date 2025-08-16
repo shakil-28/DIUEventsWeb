@@ -10,7 +10,7 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 
-export default function PendingEvents() {
+export default function AdminPendingEvents() {
   const [events, setEvents] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
