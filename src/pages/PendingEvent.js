@@ -1,29 +1,65 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { db } from "../firebase/config";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  updateDoc,
+  deleteDoc,
+} from "firebase/firestore";
 
 export default function PendingEvents() {
-  const [events, setEvents] = useState([
-    { id: 1, name: "AI in 2025", date: "2025-08-20", time: "10:00", status: "pending" },
-    { id: 2, name: "Hackathon 2025", date: "2025-09-10", time: "14:00", status: "pending" },
-    { id: 3, name: "Cybersecurity Trends", date: "2025-10-05", time: "12:00", status: "approved" },
-  ]);
-
+  const [events, setEvents] = useState([]);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  // Approve or Reject
-  const handleAction = (id, action) => {
-    setEvents((prev) =>
-      prev.map((event) =>
-        event.id === id ? { ...event, status: action } : event
-      )
-    );
+  // Fetch pending events from Firestore
+  const fetchEvents = async () => {
+    setLoading(true);
+    try {
+      const eventsRef = collection(db, "events");
+      const q = query(eventsRef, where("approved", "==", false)); // approved = false
+      const snapshot = await getDocs(q);
+      const eventsData = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setEvents(eventsData);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+    }
+    setLoading(false);
   };
 
-  // Filter only pending events
-  const filteredEvents = events.filter(
-    (event) =>
-      event.status === "pending" &&
-      event.name.toLowerCase().includes(search.toLowerCase())
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  // Approve or Reject an event
+  const handleAction = async (id, action) => {
+    try {
+      const eventRef = doc(db, "events", id);
+
+      if (action === "approved") {
+        await updateDoc(eventRef, { approved: true });
+      } else if (action === "rejected") {
+        await deleteDoc(eventRef);
+      }
+
+      setEvents((prev) => prev.filter((e) => e.id !== id));
+    } catch (error) {
+      console.error("Error updating/deleting event:", error);
+    }
+  };
+
+  // Filter events based on search input (title substring match)
+  const filteredEvents = events.filter((event) =>
+    event.title.toLowerCase().includes(search.toLowerCase())
   );
+
+  if (loading) return <p className="text-center mt-10">Loading events...</p>;
 
   return (
     <div className="min-h-screen bg-gradient-to-tr from-indigo-100 to-blue-50 p-6">
@@ -51,24 +87,26 @@ export default function PendingEvents() {
               className="flex flex-col md:flex-row items-center justify-between bg-white shadow-lg p-4 rounded-2xl transition hover:scale-105 duration-200"
             >
               <div>
-                <h2 className="text-xl font-semibold">{event.name}</h2>
+                <h2 className="text-xl font-semibold">{event.title}</h2>
                 <p className="text-gray-600">
-                  {event.date} | {event.time}
+                  {new Date(event.startingTime.seconds * 1000).toLocaleString()}{" "}
+                  |{" "}
+                  {new Date(event.endTime.seconds * 1000).toLocaleTimeString()}
                 </p>
                 <p className="mt-1 font-medium text-yellow-600">
-                  Status: {event.status}
+                  Status: {event.approved ? "approved" : "pending"}
                 </p>
               </div>
 
               <div className="mt-3 md:mt-0 space-x-2">
                 <button
-                  onClick={() => handleAction(event.id, "approved")}
+                  onClick={() => handleAction(event.id, true)}
                   className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
                 >
                   ✅ Approve
                 </button>
                 <button
-                  onClick={() => handleAction(event.id, "rejected")}
+                  onClick={() => handleAction(event.id, false)}
                   className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
                 >
                   ❌ Reject

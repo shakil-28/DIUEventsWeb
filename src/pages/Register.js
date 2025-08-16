@@ -5,9 +5,9 @@ import {
   EmailAuthProvider,
   linkWithCredential,
   updatePassword,
-  reauthenticateWithCredential
+  reauthenticateWithCredential,
 } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, collection, getDocs } from "firebase/firestore"; // <-- fixed imports
 import { useNavigate } from "react-router-dom";
 
 export default function Register() {
@@ -23,23 +23,12 @@ export default function Register() {
     if (saved) return saved === "dark";
     return window.matchMedia("(prefers-color-scheme: dark)").matches;
   });
+  const [clubs, setClubs] = useState([]);
 
   const navigate = useNavigate();
-
   const departments = ["CSE", "EEE", "BBA", "English", "Pharmacy"];
-  const clubs = [
-    "CPC",
-    "Cultural Club",
-    "Prothom Alo Bandhushova",
-    "Photography Club",
-    "Chess Club",
-    "DIU Film Society",
-    "Change Together Club",
-  ];
 
   useEffect(() => {
-    console.log("register page is loading...");
-
     if (darkMode) {
       document.documentElement.classList.add("dark");
       localStorage.setItem("theme", "dark");
@@ -50,9 +39,23 @@ export default function Register() {
   }, [darkMode]);
 
   useEffect(() => {
-    if (auth.currentUser) {
-      setUserEmail(auth.currentUser.email);
-    }
+    if (auth.currentUser) setUserEmail(auth.currentUser.email);
+  }, []);
+
+  useEffect(() => {
+    const fetchClubs = async () => {
+      try {
+        const clubsSnapshot = await getDocs(collection(db, "clubs")); // fetch clubs collection
+        const clubsData = clubsSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setClubs(clubsData);
+      } catch (error) {
+        console.error("Error fetching clubs:", error);
+      }
+    };
+    fetchClubs();
   }, []);
 
   const validatePassword = (pwd) => {
@@ -68,7 +71,6 @@ export default function Register() {
       alert("Passwords do not match!");
       return;
     }
-
     if (!validatePassword(password)) {
       alert(
         "Password must be at least 8 characters, include a letter, a number, and a special character."
@@ -81,7 +83,6 @@ export default function Register() {
     try {
       let uploadedPhotoURL = "";
 
-      // Upload photo
       if (photo instanceof File) {
         const formData = new FormData();
         formData.append("file", photo);
@@ -99,20 +100,16 @@ export default function Register() {
       const studentId = e.target.studentId.value;
       const phone = e.target.phone.value;
       const department = e.target.department.value;
-
       const currentUser = auth.currentUser;
 
-      // Check if user already has password provider
       const hasPasswordProvider = currentUser.providerData.some(
         (p) => p.providerId === "password"
       );
 
       if (!hasPasswordProvider) {
-        // Link email/password to Google account
         const credential = EmailAuthProvider.credential(userEmail, password);
         await linkWithCredential(currentUser, credential);
       } else {
-        // Re-authenticate before updating password
         try {
           const credential = EmailAuthProvider.credential(userEmail, password);
           await reauthenticateWithCredential(currentUser, credential);
@@ -130,13 +127,11 @@ export default function Register() {
         }
       }
 
-      // Update profile info
       await updateProfile(currentUser, {
         displayName: fullName,
         photoURL: uploadedPhotoURL,
       });
 
-      // Save extra data in Firestore
       await setDoc(doc(db, "users", currentUser.uid), {
         fullName,
         studentId,
@@ -327,27 +322,30 @@ export default function Register() {
             >
               <option value="">-- Choose a Club --</option>
               {clubs
-                .filter((club) => !selectedClubs.includes(club))
-                .map((club, i) => (
-                  <option key={i} value={club} className="text-gray-900 dark:text-white">
-                    {club}
+                .filter((club) => !selectedClubs.includes(club.id))
+                .map((club) => (
+                  <option key={club.id} value={club.id} className="text-gray-900 dark:text-white">
+                    {club.name || club.id}
                   </option>
                 ))}
             </select>
 
             {selectedClubs.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-3">
-                {selectedClubs.map((club, index) => (
-                  <span
-                    key={index}
-                    onClick={() =>
-                      setSelectedClubs(selectedClubs.filter((c) => c !== club))
-                    }
-                    className="bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-red-500 transition"
-                  >
-                    {club} ✖
-                  </span>
-                ))}
+                {selectedClubs.map((clubId) => {
+                  const clubObj = clubs.find((c) => c.id === clubId);
+                  return (
+                    <span
+                      key={clubId}
+                      onClick={() =>
+                        setSelectedClubs(selectedClubs.filter((c) => c !== clubId))
+                      }
+                      className="bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-red-500 transition"
+                    >
+                      {clubObj?.name || clubId} ✖
+                    </span>
+                  );
+                })}
               </div>
             )}
           </div>
