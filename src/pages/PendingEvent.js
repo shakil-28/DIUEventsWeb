@@ -38,16 +38,17 @@ export default function PendingEvents() {
   }, []);
 
   // Approve or Reject an event
-  const handleAction = async (id, action) => {
+  const handleAction = async (id, approve) => {
     try {
       const eventRef = doc(db, "events", id);
 
-      if (action === "approved") {
+      if (approve) {
         await updateDoc(eventRef, { approved: true });
-      } else if (action === "rejected") {
+      } else {
         await deleteDoc(eventRef);
       }
 
+      // Remove the event from state so UI updates immediately
       setEvents((prev) => prev.filter((e) => e.id !== id));
     } catch (error) {
       console.error("Error updating/deleting event:", error);

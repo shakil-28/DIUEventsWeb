@@ -141,6 +141,7 @@ export default function Register() {
         selectedClubs,
         photoURL: uploadedPhotoURL,
         email: userEmail,
+        role: "student", // <-- added role here
         createdAt: new Date(),
       });
 
@@ -182,7 +183,9 @@ export default function Register() {
         >
           {/* Full Name */}
           <div>
-            <label className="block text-sm font-semibold mb-1">Full Name</label>
+            <label className="block text-sm font-semibold mb-1">
+              Full Name
+            </label>
             <input
               name="fullName"
               type="text"
@@ -194,7 +197,9 @@ export default function Register() {
 
           {/* Student ID */}
           <div>
-            <label className="block text-sm font-semibold mb-1">Student ID</label>
+            <label className="block text-sm font-semibold mb-1">
+              Student ID
+            </label>
             <input
               name="studentId"
               type="text"
@@ -208,7 +213,9 @@ export default function Register() {
 
           {/* Phone Number */}
           <div>
-            <label className="block text-sm font-semibold mb-1">Phone Number</label>
+            <label className="block text-sm font-semibold mb-1">
+              Phone Number
+            </label>
             <input
               name="phone"
               type="tel"
@@ -220,7 +227,9 @@ export default function Register() {
 
           {/* Photo Upload */}
           <div>
-            <label className="block text-sm font-semibold mb-1">Upload Photo</label>
+            <label className="block text-sm font-semibold mb-1">
+              Upload Photo
+            </label>
             <div className="flex items-center gap-4 mt-1">
               {photo ? (
                 <img
@@ -249,7 +258,9 @@ export default function Register() {
 
           {/* Department */}
           <div>
-            <label className="block text-sm font-semibold mb-1">Department</label>
+            <label className="block text-sm font-semibold mb-1">
+              Department
+            </label>
             <select
               name="department"
               className="w-full px-4 py-3 rounded-xl border border-gray-400 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300"
@@ -257,7 +268,11 @@ export default function Register() {
             >
               <option value="">-- Select Department --</option>
               {departments.map((dept, i) => (
-                <option key={i} value={dept} className="text-gray-900 dark:text-white">
+                <option
+                  key={i}
+                  value={dept}
+                  className="text-gray-900 dark:text-white"
+                >
                   {dept}
                 </option>
               ))}
@@ -279,7 +294,9 @@ export default function Register() {
 
           {/* Confirm Password */}
           <div>
-            <label className="block text-sm font-semibold mb-1">Confirm Password</label>
+            <label className="block text-sm font-semibold mb-1">
+              Confirm Password
+            </label>
             <input
               type="password"
               placeholder="Re-enter your password"
@@ -310,7 +327,9 @@ export default function Register() {
 
           {/* Club Selector */}
           <div>
-            <label className="block text-sm font-semibold mb-1">Select Club</label>
+            <label className="block text-sm font-semibold mb-1">
+              Select Club
+            </label>
             <select
               onChange={(e) => {
                 const selected = e.target.value;
@@ -324,7 +343,11 @@ export default function Register() {
               {clubs
                 .filter((club) => !selectedClubs.includes(club.id))
                 .map((club) => (
-                  <option key={club.id} value={club.id} className="text-gray-900 dark:text-white">
+                  <option
+                    key={club.id}
+                    value={club.id}
+                    className="text-gray-900 dark:text-white"
+                  >
                     {club.name || club.id}
                   </option>
                 ))}
@@ -338,7 +361,9 @@ export default function Register() {
                     <span
                       key={clubId}
                       onClick={() =>
-                        setSelectedClubs(selectedClubs.filter((c) => c !== clubId))
+                        setSelectedClubs(
+                          selectedClubs.filter((c) => c !== clubId)
+                        )
                       }
                       className="bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-red-500 transition"
                     >
