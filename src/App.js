@@ -1,7 +1,7 @@
 import "./App.css";
 import { useEffect } from "react";
 import { useAuth } from "./hooks/useAuth";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import Register from "./pages/Register";
@@ -9,8 +9,6 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { getDoc, doc } from "firebase/firestore";
 import { db } from "./firebase/config";
 import AdminDashboard from "./pages/AdminDashboard";
-
-import PendingEvents from "./pages/PendingEvent";
 
 function App() {
   const { user, loading } = useAuth(); // assumes useAuth provides `loading`
@@ -69,6 +67,7 @@ function App() {
   return (
     <div className="dark:bg-slate-900 min-h-screen">
       <Routes>
+        <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<Login />} />
         <Route
           path="/home"
@@ -86,16 +85,14 @@ function App() {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/register"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute forRegister={true}>
               <Register />
             </ProtectedRoute>
           }
         />
-
       </Routes>
     </div>
   );

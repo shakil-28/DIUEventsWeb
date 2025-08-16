@@ -38,6 +38,8 @@ export default function Register() {
   ];
 
   useEffect(() => {
+    console.log("register page is loading...");
+
     if (darkMode) {
       document.documentElement.classList.add("dark");
       localStorage.setItem("theme", "dark");

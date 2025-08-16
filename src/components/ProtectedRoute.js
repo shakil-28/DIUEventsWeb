@@ -7,53 +7,52 @@ import { db } from "../firebase/config";
 
 export default function ProtectedRoute({ children, forRegister = false }) {
   const { user, loading: authLoading } = useAuth();
-  const [loading, setLoading] = useState(true);
+  const [checkingAccess, setCheckingAccess] = useState(true);
   const [allowed, setAllowed] = useState(false);
 
   useEffect(() => {
     const checkAccess = async () => {
       if (!user) {
-        setLoading(false);
+        setAllowed(false);
+        setCheckingAccess(false);
         return;
       }
 
       try {
-        const docSnapshot = await getDoc(doc(db, "students", user.uid));
+        const docRef = doc(db, "users", user.uid);
+        const docSnapshot = await getDoc(docRef);
 
         if (forRegister) {
-          // Only allow if user logged in but has NO Firestore data
-          if (!docSnapshot.exists()) {
-            setAllowed(true);
-          } else {
-            setAllowed(false);
-          }
+          // Allow if user is logged in BUT has no Firestore record
+          setAllowed(!docSnapshot.exists());
         } else {
-          // Normal protected page: allow if user has Firestore data
-          if (docSnapshot.exists()) {
-            setAllowed(true);
-          } else {
-            setAllowed(false);
-          }
+          // Allow if user has Firestore record
+          setAllowed(docSnapshot.exists());
         }
       } catch (error) {
         console.error("Error checking access:", error);
         setAllowed(false);
       } finally {
-        setLoading(false);
+        setCheckingAccess(false);
       }
     };
 
     checkAccess();
   }, [user, forRegister]);
 
-  if (authLoading || loading) return <div className="text-center mt-10">Checking access...</div>;
+  // Show loader while Firebase/Auth is still checking
+  if (authLoading || checkingAccess) {
+    return <div className="text-center mt-10">Checking access...</div>;
+  }
+
+  // If not logged in → redirect to login
   if (!user) return <Navigate to="/login" replace />;
 
+  // If not allowed → redirect based on route type
   if (!allowed) {
-    // If forRegister, redirect to home (already registered)
-    // Else redirect to register (needs registration)
     return <Navigate to={forRegister ? "/home" : "/register"} replace />;
   }
 
+  // Otherwise, render child routes
   return children;
 }
