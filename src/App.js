@@ -9,8 +9,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { getDoc, doc } from "firebase/firestore";
 import { db } from "./firebase/config";
 import AdminDashboard from "./pages/AdminDashboard";
-import AdminProfile from "./pages/AdminProfile";
-import AdminUserManagement from "./pages/AdminUserManagement";
+
 
 function App() {
   const { user, loading } = useAuth(); // assumes useAuth provides `loading`
@@ -70,7 +69,6 @@ function App() {
     <div className="dark:bg-slate-900 min-h-screen">
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
         <Route
           path="/home"
           element={
@@ -87,11 +85,17 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+          path="/register"
+          element={
+            <ProtectedRoute>
+              <Register />
+            </ProtectedRoute>
+          }
+        />
+
       </Routes>
-      <AdminDashboard />
-      <AdminProfile />
-      <Register />
-      <AdminUserManagement/>
     </div>
   );
 }
