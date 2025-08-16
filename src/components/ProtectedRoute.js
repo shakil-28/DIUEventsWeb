@@ -1,14 +1,14 @@
+// ProtectedRoute.js
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { getDoc, doc } from "firebase/firestore";
 import { db } from "../firebase/config";
 
-export default function ProtectedRoute({ children, requiredRole = null }) {
-  const { user } = useAuth();
-  const [allowed, setAllowed] = useState(false);
+export default function ProtectedRoute({ children, forRegister = false }) {
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [needsRegistration, setNeedsRegistration] = useState(false);
+  const [allowed, setAllowed] = useState(false);
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -18,23 +18,25 @@ export default function ProtectedRoute({ children, requiredRole = null }) {
       }
 
       try {
-        const docSnapshot = await getDoc(doc(db, "users", user.uid));
+        const docSnapshot = await getDoc(doc(db, "students", user.uid));
 
-        if (docSnapshot.exists()) {
-          const userType = docSnapshot.data().role;
-          console.log(userType);
-
-          // If no specific role is required, allow all authenticated users
-          if (!requiredRole || userType === requiredRole) {
+        if (forRegister) {
+          // Only allow if user logged in but has NO Firestore data
+          if (!docSnapshot.exists()) {
             setAllowed(true);
           } else {
             setAllowed(false);
           }
         } else {
-          setNeedsRegistration(true);
+          // Normal protected page: allow if user has Firestore data
+          if (docSnapshot.exists()) {
+            setAllowed(true);
+          } else {
+            setAllowed(false);
+          }
         }
       } catch (error) {
-        console.error("Error checking userType:", error);
+        console.error("Error checking access:", error);
         setAllowed(false);
       } finally {
         setLoading(false);
@@ -42,13 +44,16 @@ export default function ProtectedRoute({ children, requiredRole = null }) {
     };
 
     checkAccess();
-  }, [user, requiredRole]);
+  }, [user, forRegister]);
 
-  // Redirects
+  if (authLoading || loading) return <div className="text-center mt-10">Checking access...</div>;
   if (!user) return <Navigate to="/login" replace />;
-  if (loading) return <div className="text-center mt-10">Checking permission...</div>;
-  if (needsRegistration) return <Navigate to="/register" replace />;
-  if (!allowed) return <Navigate to="/home" replace />;
+
+  if (!allowed) {
+    // If forRegister, redirect to home (already registered)
+    // Else redirect to register (needs registration)
+    return <Navigate to={forRegister ? "/home" : "/register"} replace />;
+  }
 
   return children;
 }

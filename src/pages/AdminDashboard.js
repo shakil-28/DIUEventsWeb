@@ -1,12 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
-  FaBars,
-  FaArrowLeft,
-  FaTachometerAlt,
-  FaCalendarAlt,
-  FaUsers,
-  FaUser,
-  FaCog,
+  FaArrowLeft
 } from "react-icons/fa";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase/auth";
