@@ -3,7 +3,6 @@ import React, { useState } from "react";
 export default function Register() {
   const [notifications, setNotifications] = useState(true);
   const [selectedClubs, setSelectedClubs] = useState([]);
-  const [currentClub, setCurrentClub] = useState("");
   const [photo, setPhoto] = useState(null);
 
   const departments = ["CSE", "EEE", "BBA", "English", "Pharmacy"];
@@ -17,101 +16,76 @@ export default function Register() {
     "Change Together Club",
   ];
 
+  const handleRegisterFormSubmit = async () => {
+    
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-blue-100 to-indigo-200 px-4 py-12">
-      <div className="bg-white shadow-2xl rounded-3xl p-10 w-full max-w-2xl transition-all duration-300">
-        <h2 className="text-3xl font-extrabold text-center text-indigo-700 mb-8 tracking-tight">
-          🌟 Join DIU Events
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black px-4 py-12">
+      <div className="bg-white/10 backdrop-blur-lg shadow-xl rounded-3xl p-10 w-full max-w-2xl transition-all duration-300 border border-white/20">
+        <h2 className="text-4xl font-extrabold text-center text-white mb-8 tracking-tight">
+          Join DIU Events
         </h2>
-        <form className="space-y-6">
+
+        <form className="space-y-6 text-white" onSubmit={handleRegisterFormSubmit}>
           {/* Full Name */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Full Name
-            </label>
+            <label className="block text-sm font-semibold mb-1">Full Name</label>
             <input
               type="text"
               placeholder="Enter your name"
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-sm"
+              className="w-full px-4 py-3 rounded-xl border border-gray-500 bg-black/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
               required
             />
           </div>
 
           {/* Student ID */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Student ID
-            </label>
+            <label className="block text-sm font-semibold mb-1">Student ID</label>
             <input
               type="text"
               placeholder="XXX-XX-XXXX"
               pattern="\d{3}-\d{2}-\d{4}"
               title="Format: xxx-xx-xxxx"
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-sm"
+              className="w-full px-4 py-3 rounded-xl border border-gray-500 bg-black/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
               required
             />
           </div>
 
           {/* Phone Number */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Phone Number
-            </label>
+            <label className="block text-sm font-semibold mb-1">Phone Number</label>
             <input
               type="tel"
               placeholder="01XXXXXXXXX"
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-sm"
+              className="w-full px-4 py-3 rounded-xl border border-gray-500 bg-black/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
               required
             />
           </div>
 
           {/* Upload Photo */}
-          {/* Upload Photo */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Upload Photo
-            </label>
-
-            <div className="flex items-center gap-3 mt-1">
+            <label className="block text-sm font-semibold mb-1">Upload Photo</label>
+            <div className="flex items-center gap-4 mt-1">
               {photo ? (
                 <img
                   src={photo}
                   alt="Preview"
-                  className="w-20 h-20 rounded-full object-cover border border-gray-300 shadow-sm"
+                  className="w-20 h-20 rounded-full object-cover border border-gray-500 shadow-md"
                 />
               ) : (
-                <div className="w-20 h-20 rounded-full bg-gray-200 border border-dashed border-gray-400 flex items-center justify-center text-gray-500 text-xs">
-                  No Image
+                <div className="w-20 h-20 rounded-full bg-gray-800 border border-dashed border-gray-500 flex items-center justify-center text-gray-400 text-xs">
+                  📷
                 </div>
               )}
 
               <div>
                 <label
                   htmlFor="photo-upload"
-                  className="cursor-pointer inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md shadow hover:bg-blue-700 transition duration-200"
+                  className="cursor-pointer inline-flex items-center px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg shadow transition"
                 >
-                  <svg
-                    className="w-4 h-4 mr-1"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M3 7h4l2-3h6l2 3h4v13H3V7z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 11l3 4H9l3-4z"
-                    />
-                  </svg>
                   Choose Image
                 </label>
-
                 <input
                   id="photo-upload"
                   type="file"
@@ -132,16 +106,14 @@ export default function Register() {
 
           {/* Department Dropdown */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Department
-            </label>
+            <label className="block text-sm font-semibold mb-1">Department</label>
             <select
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-sm"
+              className="w-full px-4 py-3 rounded-xl border border-gray-500 bg-black/50 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
               required
             >
               <option value="">-- Select Department --</option>
               {departments.map((dept, i) => (
-                <option key={i} value={dept}>
+                <option key={i} value={dept} className="text-black">
                   {dept}
                 </option>
               ))}
@@ -150,14 +122,12 @@ export default function Register() {
 
           {/* Notifications Toggle */}
           <div className="flex items-center space-x-4">
-            <span className="text-sm font-semibold text-gray-700">
-              Enable Notifications
-            </span>
+            <span className="text-sm font-semibold">Enable Notifications</span>
             <button
               type="button"
               onClick={() => setNotifications(!notifications)}
               className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors duration-300 ${
-                notifications ? "bg-indigo-600" : "bg-gray-300"
+                notifications ? "bg-blue-500" : "bg-gray-500"
               }`}
             >
               <div
@@ -170,55 +140,45 @@ export default function Register() {
 
           {/* Club Selector */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Select Club
-            </label>
-            <div className="flex gap-2 mt-1">
-              <select
-                value={currentClub}
-                onChange={(e) => {
-                  const selected = e.target.value;
-                  setCurrentClub(""); // reset selection
-
-                  if (selected && !selectedClubs.includes(selected)) {
-                    setSelectedClubs([...selectedClubs, selected]);
-                  }
-                }}
-                className="flex-grow px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-sm"
-              >
-                <option value="">-- Choose a Club --</option>
-                {clubs
-                  .filter((club) => !selectedClubs.includes(club))
-                  .map((club, i) => (
-                    <option key={i} value={club}>
-                      {club}
-                    </option>
-                  ))}
-              </select>
-            </div>
+            <label className="block text-sm font-semibold mb-1">Select Club</label>
+            <select
+              onChange={(e) => {
+                const selected = e.target.value;
+                if (selected && !selectedClubs.includes(selected)) {
+                  setSelectedClubs([...selectedClubs, selected]);
+                }
+              }}
+              className="w-full px-4 py-3 rounded-xl border border-gray-500 bg-black/50 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+            >
+              <option value="">-- Choose a Club --</option>
+              {clubs.filter((club) => !selectedClubs.includes(club)).map((club, i) => (
+                <option key={i} value={club} className="text-black">
+                  {club}
+                </option>
+              ))}
+            </select>
 
             {selectedClubs.length > 0 && (
-              <ul className="mt-3 list-disc list-inside text-sm text-gray-700">
+              <div className="flex flex-wrap gap-2 mt-3">
                 {selectedClubs.map((club, index) => (
-                  <li
+                  <span
                     key={index}
                     onClick={() =>
                       setSelectedClubs(selectedClubs.filter((c) => c !== club))
                     }
-                    className="cursor-pointer hover:text-red-600"
-                    title="Click to remove"
+                    className="bg-gray-700 text-white px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-red-500 transition"
                   >
-                    {club}
-                  </li>
+                    {club} ✖
+                  </span>
                 ))}
-              </ul>
+              </div>
             )}
           </div>
 
           {/* Submit */}
           <button
             type="submit"
-            className="w-full py-3 bg-indigo-600 text-white font-semibold rounded-xl shadow-md hover:bg-indigo-700 transition duration-300"
+            className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-xl shadow-lg transition duration-300"
           >
             Register Now
           </button>
