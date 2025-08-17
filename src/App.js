@@ -12,6 +12,7 @@ import AdminAddClub from "./pages/AdminAddClub";
 import AdminPendingEvents from "./pages/AdminPendingEvents";
 import AdminUserManagement from "./pages/AdminUserManagement";
 import AdminProfile from "./pages/AdminProfile";
+import StudentProfile from "./pages/StudentProfile";
 
 function App() {
   // Setup dark theme from localStorage or system preference
@@ -19,8 +20,7 @@ function App() {
     const savedTheme = localStorage.getItem("theme");
     if (
       savedTheme === "dark" ||
-      (!savedTheme &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches)
+      (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches)
     ) {
       document.documentElement.classList.add("dark");
     } else {
@@ -105,6 +105,7 @@ function App() {
           }
         />
       </Routes>
+      <StudentProfile />
     </div>
   );
 }
