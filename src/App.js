@@ -12,6 +12,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminUserManagement from "./pages/AdminUserManagement";
 import AdminPendingEvents from "./pages/AdminPendingEvents";
 import AdminApprovedEvents from "./pages/AdminApprovedEvents";
+import ClubDashboard from "./pages/ClubDashboard";
 
 function App() {
   const { user, loading } = useAuth(); // assumes useAuth provides `loading`
@@ -100,6 +101,7 @@ function App() {
       <AdminUserManagement />
       <AdminPendingEvents />
       <AdminApprovedEvents />
+      <ClubDashboard />
     </div>
   );
 }
