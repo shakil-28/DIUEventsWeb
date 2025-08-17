@@ -1,4 +1,4 @@
-import { getAuth } from "firebase/auth";
-import { app } from "./config";
+// src/firebase/auth.js
+import { auth } from "./config"; // just reuse auth from config.js
 
-export const auth = getAuth(app);
+export { auth };

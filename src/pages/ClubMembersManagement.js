@@ -1,38 +1,22 @@
 // src/pages/MembersManagement.js
 import React, { useState } from "react";
 import { FaCheck, FaTimes, FaTrash, FaSearch } from "react-icons/fa";
+import ClubNavBar from "../components/ClubNavBar";
 
 export default function ClubMembersManagement() {
-  const [activeTab] = useState("members");
-  const [searchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState("members");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const [members] = useState([
-    {
-      id: 1,
-      name: "Alice Smith",
-      email: "alice@example.com",
-      joinDate: "2025-01-10",
-    },
-    {
-      id: 2,
-      name: "Bob Johnson",
-      email: "bob@example.com",
-      joinDate: "2025-02-15",
-    },
+    { id: 1, name: "Alice Smith", email: "alice@example.com", joinDate: "2025-01-10" },
+    { id: 2, name: "Bob Johnson", email: "bob@example.com", joinDate: "2025-02-15" },
   ]);
 
   const [pendingRequests] = useState([
-    {
-      id: 3,
-      name: "Charlie Brown",
-      email: "charlie@example.com",
-      joinDate: "2025-08-01",
-    },
+    { id: 3, name: "Charlie Brown", email: "charlie@example.com", joinDate: "2025-08-01" },
   ]);
 
-  const filteredUsers = (
-    activeTab === "members" ? members : pendingRequests
-  ).filter(
+  const filteredUsers = (activeTab === "members" ? members : pendingRequests).filter(
     (user) =>
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -47,8 +31,11 @@ export default function ClubMembersManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-50 p-6">
-      <h1 className="text-3xl font-bold text-indigo-700 mb-6 text-center">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-50">
+      {/* Navbar */}
+      <ClubNavBar />
+
+      <h1 className="text-3xl font-bold text-indigo-700 mb-6 mt-4 text-center">
         Members Management
       </h1>
 
@@ -91,7 +78,7 @@ export default function ClubMembersManagement() {
       </div>
 
       {/* Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 px-6">
         {filteredUsers.length > 0 ? (
           filteredUsers.map((user) => (
             <div
@@ -99,12 +86,11 @@ export default function ClubMembersManagement() {
               className="bg-white p-6 rounded-3xl shadow-lg hover:shadow-xl transition transform hover:scale-105 flex flex-col justify-between"
             >
               <div>
-                <h2 className="text-xl font-semibold text-indigo-700 mb-1">
-                  {user.name}
-                </h2>
+                <h2 className="text-xl font-semibold text-indigo-700 mb-1">{user.name}</h2>
                 <p className="text-gray-600 mb-1">{user.email}</p>
                 <p className="text-gray-400 text-sm">Joined: {user.joinDate}</p>
               </div>
+
               <div className="flex justify-between mt-4 gap-2">
                 {activeTab === "pending" ? (
                   <>
@@ -133,9 +119,7 @@ export default function ClubMembersManagement() {
             </div>
           ))
         ) : (
-          <p className="text-center col-span-full text-gray-500">
-            No users found.
-          </p>
+          <p className="text-center col-span-full text-gray-500">No users found.</p>
         )}
       </div>
     </div>

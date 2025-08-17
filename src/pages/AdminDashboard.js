@@ -4,110 +4,77 @@ import { signOut } from "firebase/auth";
 import { auth } from "../firebase/auth";
 import { useNavigate } from "react-router-dom";
 import AdminNavBar from "../components/AdminNavBar";
-import { collection, getDocs, query, where } from "firebase/firestore";
-import { db } from "../firebase/config"; // make sure this path is correct
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { db } from "../firebase/config";
 
 const AdminDashboard = () => {
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const navigate = useNavigate();
+
   const [totalEvents, setTotalEvents] = useState(0);
+  const [pendingEvents, setPendingEvents] = useState(0);
   const [totalClubs, setTotalClubs] = useState(0);
   const [registeredUsers, setRegisteredUsers] = useState(0);
-  const [pendingEvents, setPendingEvents] = useState(0);
   const [upcomingEvents, setUpcomingEvents] = useState([]);
 
+  // Real-time counts
   useEffect(() => {
-    const fetchUpcomingEvents = async () => {
-      try {
-        const now = new Date();
-        const upcomingQuery = query(
-          collection(db, "events"),
-          where("startingTime", ">", now),
-          where("approved", "==", true)
-        );
+    const user = auth.currentUser;
+    console.log(user.uid);
+    if (!user) return;
 
-        const snapshot = await getDocs(upcomingQuery);
-        const events = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+    const eventsQuery = query(
+      collection(db, "events"),
+      where("clubId", "==", user.uid)
+    );
 
-        // Sort by date ascending
-        events.sort(
-          (a, b) => a.startingTime.toDate() - b.startingTime.toDate()
-        );
+    const unsubscribeEvents = onSnapshot(eventsQuery, (snapshot) => {
+      setTotalEvents(snapshot.size);
 
-        setUpcomingEvents(events);
-      } catch (error) {
-        console.error("Error fetching upcoming events:", error);
-      }
+      const pending = snapshot.docs.filter(
+        (doc) => !doc.data().approved
+      ).length;
+      setPendingEvents(pending);
+
+      const now = new Date();
+      const upcoming = snapshot.docs
+        .map((doc) => ({ id: doc.id, ...doc.data() }))
+        .filter((e) => e.approved === true && e.startingTime?.toDate() > now)
+        .sort((a, b) => a.startingTime.toDate() - b.startingTime.toDate());
+
+      setUpcomingEvents(upcoming);
+    });
+
+    // Clubs and registered users can remain the same
+    const clubsQuery = query(
+      collection(db, "users"),
+      where("role", "==", "club")
+    );
+    const unsubscribeClubs = onSnapshot(clubsQuery, (snapshot) =>
+      setTotalClubs(snapshot.size)
+    );
+
+    const usersQuery = query(
+      collection(db, "users"),
+      where("role", "==", "student")
+    );
+    const unsubscribeUsers = onSnapshot(usersQuery, (snapshot) =>
+      setRegisteredUsers(snapshot.size)
+    );
+
+    return () => {
+      unsubscribeEvents();
+      unsubscribeClubs();
+      unsubscribeUsers();
     };
-
-    fetchUpcomingEvents();
-  }, []);
-
-  useEffect(() => {
-    const fetchDashboardCounts = async () => {
-      try {
-        // Total events
-        const eventsSnap = await getDocs(collection(db, "events"));
-        setTotalEvents(eventsSnap.size);
-
-        // Pending events
-        const pendingQuery = query(
-          collection(db, "events"),
-          where("approved", "==", false)
-        );
-        const pendingSnap = await getDocs(pendingQuery);
-        setPendingEvents(pendingSnap.size);
-
-        // Total clubs
-        const clubsQuery = query(
-          collection(db, "users"),
-          where("role", "==", "club")
-        );
-        const clubsSnap = await getDocs(clubsQuery);
-        setTotalClubs(clubsSnap.size);
-
-        // Registered users (students)
-        const usersQuery = query(
-          collection(db, "users"),
-          where("role", "==", "student")
-        );
-        const usersSnap = await getDocs(usersQuery);
-        setRegisteredUsers(usersSnap.size);
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-      }
-    };
-
-    fetchDashboardCounts();
   }, []);
 
   const handleLogout = () => {
     signOut(auth)
-      .then(() => {
-        navigate("/login");
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+      .then(() => navigate("/login"))
+      .catch(console.error);
   };
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme");
-    if (
-      savedTheme === "dark" ||
-      (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches)
-    ) {
-      setDarkMode(true);
-      document.documentElement.classList.add("dark");
-    } else {
-      setDarkMode(false);
-      document.documentElement.classList.remove("dark");
-    }
-  }, []);
 
   const toggleDarkMode = () => {
     if (darkMode) {
@@ -121,19 +88,12 @@ const AdminDashboard = () => {
     }
   };
 
-  const toggleSidebar = () => {
-    setSidebarVisible(!sidebarVisible);
-  };
+  const toggleSidebar = () => setSidebarVisible(!sidebarVisible);
 
   return (
-    <div
-      className={`flex min-h-screen font-sans ${
-        !sidebarVisible ? "md:pl-0" : ""
-      } bg-gray-100 dark:bg-gray-900`}
-    >
-      {/* Sidebar */}
+    <div className={`flex min-h-screen font-sans bg-gray-100 dark:bg-gray-900`}>
       <aside
-        className={`fixed top-0 left-0 h-full w-56 bg-gray-800 text-white z-50 transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 left-0 h-full w-56 bg-gray-800 text-white z-50 transform transition-transform duration-300 ${
           sidebarVisible ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -145,13 +105,11 @@ const AdminDashboard = () => {
         </div>
       </aside>
 
-      {/* Main Content */}
       <div
-        className={`flex-1 transition-all duration-300 ease-in-out ${
+        className={`flex-1 transition-all duration-300 ${
           sidebarVisible ? "md:ml-56" : ""
         }`}
       >
-        {/* Replaced old header with NavBar */}
         <AdminNavBar
           toggleSidebar={toggleSidebar}
           sidebarVisible={sidebarVisible}
@@ -186,7 +144,6 @@ const AdminDashboard = () => {
             <h2 className="text-2xl text-gray-800 dark:text-gray-100 mb-4">
               Upcoming Events
             </h2>
-
             {upcomingEvents.length === 0 ? (
               <p className="text-gray-700 dark:text-gray-300 ml-2">
                 No upcoming events.
@@ -199,7 +156,7 @@ const AdminDashboard = () => {
                 >
                   <div>
                     <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                      {event.name}
+                      {event.title}
                     </h4>
                     <p className="text-gray-700 dark:text-gray-300">
                       Date: {event.startingTime.toDate().toLocaleDateString()}
@@ -207,14 +164,6 @@ const AdminDashboard = () => {
                     <p className="text-gray-700 dark:text-gray-300">
                       Status: Upcoming
                     </p>
-                  </div>
-                  <div className="flex gap-2 mt-2 sm:mt-0">
-                    <button className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition">
-                      Edit
-                    </button>
-                    <button className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition">
-                      Delete
-                    </button>
                   </div>
                 </div>
               ))
