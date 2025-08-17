@@ -12,6 +12,10 @@ import AdminAddClub from "./pages/AdminAddClub";
 import AdminPendingEvents from "./pages/AdminPendingEvents";
 import AdminUserManagement from "./pages/AdminUserManagement";
 import AdminProfile from "./pages/AdminProfile";
+import ClubDashboard from "./pages/ClubDashboard";
+import ClubEventsManagement from "./pages/ClubEventsManagement";
+import ClubMembersManagement from "./pages/ClubMembersManagement";
+import ClubProfile from "./pages/ClubProfile";
 
 function App() {
   // Setup dark theme from localStorage or system preference
@@ -19,8 +23,7 @@ function App() {
     const savedTheme = localStorage.getItem("theme");
     if (
       savedTheme === "dark" ||
-      (!savedTheme &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches)
+      (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches)
     ) {
       document.documentElement.classList.add("dark");
     } else {
@@ -101,6 +104,42 @@ function App() {
           element={
             <ProtectedRoute requiredRole="admin">
               <AdminProfile />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/club-dashboard"
+          element={
+            <ProtectedRoute requiredRole="club">
+              <ClubDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/club-events-management"
+          element={
+            <ProtectedRoute requiredRole="club">
+              <ClubEventsManagement />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/club-members-management"
+          element={
+            <ProtectedRoute requiredRole="club">
+              <ClubMembersManagement />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/club-profile"
+          element={
+            <ProtectedRoute requiredRole="club">
+              <ClubProfile />
             </ProtectedRoute>
           }
         />
