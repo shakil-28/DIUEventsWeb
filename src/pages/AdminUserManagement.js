@@ -21,7 +21,7 @@ export default function AdminUserManagement() {
       setUsers(usersData);
     });
 
-    return () => unsubscribe(); // cleanup
+    return () => unsubscribe();
   }, []);
 
   // 🔹 Filter users safely by name or email
@@ -59,12 +59,12 @@ export default function AdminUserManagement() {
   // Dummy props for AdminNavBar
   const toggleSidebar = () => {};
   const sidebarVisible = false;
-  const darkMode = false;
+  const darkMode = true; // Enable dark mode
   const toggleDarkMode = () => {};
   const handleLogout = () => {};
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-500">
       {/* Navbar */}
       <AdminNavBar
         toggleSidebar={toggleSidebar}
@@ -76,15 +76,17 @@ export default function AdminUserManagement() {
 
       {/* Page content */}
       <div className="p-6 flex flex-col items-center">
-        <h1 className="text-2xl font-bold mb-6">Admin User Management</h1>
+        <h1 className="text-3xl font-extrabold mb-6 text-gray-900 dark:text-gray-100">
+          Admin User Management
+        </h1>
 
         {/* Search Bar */}
-        <div className="flex items-center bg-white shadow-md rounded-full px-4 py-2 w-full max-w-md mb-6">
-          <FaSearch className="text-gray-500 mr-2" />
+        <div className="flex items-center bg-white dark:bg-gray-800 shadow-md rounded-full px-4 py-2 w-full max-w-md mb-6">
+          <FaSearch className="text-gray-500 dark:text-gray-300 mr-2" />
           <input
             type="text"
             placeholder="Search name or email..."
-            className="flex-grow outline-none"
+            className="flex-grow outline-none bg-transparent text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -96,7 +98,7 @@ export default function AdminUserManagement() {
             filteredUsers.map((user) => (
               <div
                 key={user.id}
-                className="bg-white shadow-lg rounded-lg p-4 flex flex-col"
+                className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-4 flex flex-col transition transform hover:scale-105 duration-200"
               >
                 {/* Top Section: Profile + Info */}
                 <div className="flex items-center space-x-4 mb-3">
@@ -108,19 +110,19 @@ export default function AdminUserManagement() {
 
                   {/* User Info */}
                   <div className="flex flex-col min-w-[150px]">
-                    <h2 className="text-lg font-semibold truncate">
+                    <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 truncate">
                       {user.name || user.fullName || "No Name"}
                     </h2>
-                    <p className="text-gray-500 text-sm truncate">
+                    <p className="text-gray-500 dark:text-gray-300 text-sm truncate">
                       {user.email || "No Email"}
                     </p>
                     {user.department && (
-                      <p className="text-xs text-gray-400 truncate">
+                      <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
                         Dept: {user.department}
                       </p>
                     )}
                     {user.studentId && (
-                      <p className="text-xs text-gray-400 truncate">
+                      <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
                         Student ID: {user.studentId}
                       </p>
                     )}
@@ -131,13 +133,13 @@ export default function AdminUserManagement() {
                 <div className="flex justify-between mt-2">
                   <button
                     onClick={() => handleDelete(user.id)}
-                    className="flex items-center bg-red-500 text-white px-3 py-1.5 rounded-md hover:bg-red-600 text-sm"
+                    className="flex items-center bg-red-500 dark:bg-red-600 text-white px-3 py-1.5 rounded-md hover:bg-red-600 dark:hover:bg-red-700 text-sm transition"
                   >
                     <FaTrash className="mr-1" /> Delete
                   </button>
                   <button
                     onClick={() => handleResetPassword(user.email)}
-                    className="flex items-center bg-green-500 text-white px-3 py-1.5 rounded-md hover:bg-green-600 text-sm"
+                    className="flex items-center bg-green-500 dark:bg-green-600 text-white px-3 py-1.5 rounded-md hover:bg-green-600 dark:hover:bg-green-700 text-sm transition"
                   >
                     <FaEnvelope className="mr-1" /> Reset
                   </button>
@@ -145,7 +147,9 @@ export default function AdminUserManagement() {
               </div>
             ))
           ) : (
-            <p className="text-red-500 text-center">⚠️ No user found.</p>
+            <p className="text-center text-gray-500 dark:text-gray-400 text-lg mt-10">
+              ⚠️ No user found.
+            </p>
           )}
         </div>
       </div>
