@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { FaPlus, FaTrash, FaEdit, FaCheck, FaTimes } from "react-icons/fa";
 
-export default function EventsManagement() {
+export default function ClubEventsManagement() {
   const [events, setEvents] = useState([
     {
       id: 1,
@@ -10,7 +10,7 @@ export default function EventsManagement() {
       description: "Explore AI trends and breakthroughs.",
       date: "2025-08-25",
       status: "approved",
-      poster: "https://via.placeholder.com/300x180",
+      poster: "https://via.placeholder.com/400x250",
     },
     {
       id: 2,
@@ -18,7 +18,7 @@ export default function EventsManagement() {
       description: "Participate in a 48-hour coding marathon.",
       date: "2025-09-10",
       status: "pending",
-      poster: "https://via.placeholder.com/300x180",
+      poster: "https://via.placeholder.com/400x250",
     },
   ]);
 
@@ -32,14 +32,12 @@ export default function EventsManagement() {
     poster: "",
   });
 
-  // Handle input changes
   const handleInputChange = (e) => {
     const target = editingEvent ? editingEvent : newEvent;
     const setter = editingEvent ? setEditingEvent : setNewEvent;
     setter({ ...target, [e.target.name]: e.target.value });
   };
 
-  // Handle poster file change
   const handlePosterChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -54,8 +52,11 @@ export default function EventsManagement() {
     reader.readAsDataURL(file);
   };
 
-  // Save new event
   const handleAddEvent = () => {
+    if (!newEvent.title || !newEvent.date) {
+      alert("Title and Date are required!");
+      return;
+    }
     setEvents([...events, { ...newEvent, id: Date.now() }]);
     setNewEvent({
       title: "",
@@ -67,85 +68,76 @@ export default function EventsManagement() {
     setShowModal(false);
   };
 
-  // Save edited event
   const handleSaveEdit = () => {
+    if (!editingEvent.title || !editingEvent.date) {
+      alert("Title and Date are required!");
+      return;
+    }
     setEvents(events.map((e) => (e.id === editingEvent.id ? editingEvent : e)));
     setEditingEvent(null);
     setShowModal(false);
   };
 
-  // Delete event
   const handleDelete = (id) => {
     if (window.confirm("Are you sure you want to delete this event?")) {
       setEvents(events.filter((e) => e.id !== id));
     }
   };
 
-  // Approve or reject pending events
+  // Instant approve/reject without showing status text/icon
   const handlePendingAction = (id, action) => {
-    if (window.confirm(`Are you sure you want to ${action} this event?`)) {
-      setEvents(
-        events.map((e) =>
-          e.id === id
-            ? { ...e, status: action === "approve" ? "approved" : "rejected" }
-            : e
-        )
-      );
-    }
+    setEvents(
+      events.map((e) =>
+        e.id === id
+          ? { ...e, status: action === "approve" ? "approved" : "rejected" }
+          : e
+      )
+    );
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-50 p-6">
-      <h1 className="text-3xl font-bold text-indigo-700 mb-6 text-center">
+      <h1 className="text-4xl font-extrabold text-indigo-700 mb-8 text-center">
         Events Management
       </h1>
 
-      {/* Event Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {events.map((event) => (
           <div
             key={event.id}
-            className="bg-white rounded-3xl shadow-lg hover:shadow-xl transition transform hover:scale-105 overflow-hidden flex flex-col"
+            className="relative bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl hover:-translate-y-1 transform transition-all duration-300 flex flex-col"
           >
-            <img
-              src={event.poster}
-              alt={event.title}
-              className="w-full h-48 object-cover"
-            />
+            {/* Poster Image */}
+            <div className="relative h-48 w-full overflow-hidden">
+              <img
+                src={event.poster}
+                alt={event.title}
+                className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+              />
+            </div>
+
             <div className="p-4 flex-1 flex flex-col">
-              <h2 className="text-xl font-bold text-indigo-700 mb-2">
+              <h2 className="text-xl font-bold text-indigo-700 mb-1">
                 {event.title}
               </h2>
               <p className="text-gray-600 text-sm mb-2 line-clamp-3">
                 {event.description}
               </p>
-              <p className="text-gray-500 text-sm mb-2">📅 {event.date}</p>
-              <span
-                className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
-                  event.status === "approved"
-                    ? "bg-green-200 text-green-800"
-                    : event.status === "pending"
-                    ? "bg-yellow-200 text-yellow-800"
-                    : "bg-red-200 text-red-800"
-                }`}
-              >
-                {event.status.toUpperCase()}
-              </span>
+              <p className="text-gray-500 text-sm mb-4">📅 {event.date}</p>
 
-              {/* Pending actions */}
               {event.status === "pending" && (
-                <div className="flex gap-2 mt-2">
+                <div className="flex gap-2 mb-4">
                   <button
                     onClick={() => handlePendingAction(event.id, "approve")}
-                    className="flex-1 bg-green-500 text-white px-2 py-1 rounded-xl hover:bg-green-600 transition flex items-center justify-center"
+                    className="flex-1 bg-gradient-to-r from-green-400 to-green-600 text-white px-3 py-1.5 rounded-xl flex items-center justify-center gap-1 hover:from-green-500 hover:to-green-700 transition"
                   >
-                    <FaCheck className="mr-1" /> Approve
+                    <FaCheck /> Approve
                   </button>
                   <button
                     onClick={() => handlePendingAction(event.id, "reject")}
-                    className="flex-1 bg-red-500 text-white px-2 py-1 rounded-xl hover:bg-red-600 transition flex items-center justify-center"
+                    className="flex-1 bg-gradient-to-r from-red-400 to-red-600 text-white px-3 py-1.5 rounded-xl flex items-center justify-center gap-1 hover:from-red-500 hover:to-red-700 transition"
                   >
-                    <FaTimes className="mr-1" /> Reject
+                    <FaTimes /> Reject
                   </button>
                 </div>
               )}
@@ -156,15 +148,15 @@ export default function EventsManagement() {
                     setEditingEvent(event);
                     setShowModal(true);
                   }}
-                  className="bg-indigo-500 text-white px-3 py-1.5 rounded-xl hover:bg-indigo-600 transition flex items-center"
+                  className="bg-gradient-to-r from-indigo-500 to-indigo-700 text-white px-3 py-1.5 rounded-xl hover:from-indigo-600 hover:to-indigo-800 flex items-center gap-1 transition"
                 >
-                  <FaEdit className="mr-1" /> Edit
+                  <FaEdit /> Edit
                 </button>
                 <button
                   onClick={() => handleDelete(event.id)}
-                  className="bg-red-500 text-white px-3 py-1.5 rounded-xl hover:bg-red-600 transition flex items-center"
+                  className="bg-gradient-to-r from-red-500 to-red-700 text-white px-3 py-1.5 rounded-xl hover:from-red-600 hover:to-red-800 flex items-center gap-1 transition"
                 >
-                  <FaTrash className="mr-1" /> Delete
+                  <FaTrash /> Delete
                 </button>
               </div>
             </div>
@@ -172,21 +164,21 @@ export default function EventsManagement() {
         ))}
       </div>
 
-      {/* Floating Create Event Button */}
+      {/* Floating Add Event */}
       <button
         onClick={() => {
           setEditingEvent(null);
           setShowModal(true);
         }}
-        className="fixed bottom-8 right-8 bg-indigo-600 text-white w-16 h-16 rounded-full shadow-xl hover:bg-indigo-700 transition flex items-center justify-center text-2xl"
+        className="fixed bottom-8 right-8 w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 text-white shadow-2xl flex items-center justify-center hover:from-indigo-600 hover:to-indigo-800 transition text-2xl"
       >
         <FaPlus />
       </button>
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-lg relative">
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-lg relative shadow-2xl">
             <h2 className="text-2xl font-bold mb-4">
               {editingEvent ? "Edit Event" : "Create Event"}
             </h2>
@@ -196,7 +188,7 @@ export default function EventsManagement() {
               placeholder="Title"
               value={editingEvent ? editingEvent.title : newEvent.title}
               onChange={handleInputChange}
-              className="w-full p-3 mb-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              className="w-full p-3 mb-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-sm"
             />
             <textarea
               name="description"
@@ -205,25 +197,15 @@ export default function EventsManagement() {
                 editingEvent ? editingEvent.description : newEvent.description
               }
               onChange={handleInputChange}
-              className="w-full p-3 mb-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"
+              className="w-full p-3 mb-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none shadow-sm"
             />
             <input
               type="date"
               name="date"
               value={editingEvent ? editingEvent.date : newEvent.date}
               onChange={handleInputChange}
-              className="w-full p-3 mb-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              className="w-full p-3 mb-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-sm"
             />
-            <select
-              name="status"
-              value={editingEvent ? editingEvent.status : newEvent.status}
-              onChange={handleInputChange}
-              className="w-full p-3 mb-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            >
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-            </select>
             <input
               type="file"
               accept="image/*"
@@ -234,7 +216,7 @@ export default function EventsManagement() {
               <img
                 src={editingEvent ? editingEvent.poster : newEvent.poster}
                 alt="Preview"
-                className="w-full h-48 object-cover mb-4 rounded-2xl"
+                className="w-full h-48 object-cover mb-4 rounded-2xl shadow-inner"
               />
             )}
             <div className="flex justify-end gap-3">
@@ -246,7 +228,7 @@ export default function EventsManagement() {
               </button>
               <button
                 onClick={editingEvent ? handleSaveEdit : handleAddEvent}
-                className="px-4 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition"
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-700 text-white hover:from-indigo-600 hover:to-indigo-800 transition"
               >
                 {editingEvent ? "Save Changes" : "Create"}
               </button>
