@@ -3,12 +3,7 @@ import React, { useState, useEffect } from "react";
 import { FaSearch, FaTrash, FaEnvelope } from "react-icons/fa";
 import { db } from "../firebase/config";
 import { auth } from "../firebase/auth";
-import {
-  collection,
-  onSnapshot,
-  deleteDoc,
-  doc,
-} from "firebase/firestore";
+import { collection, onSnapshot, deleteDoc, doc } from "firebase/firestore";
 import { sendPasswordResetEmail } from "firebase/auth";
 
 export default function AdminUserManagement() {
@@ -31,10 +26,10 @@ export default function AdminUserManagement() {
   // 🔹 Filter users safely by name or email
   const filteredUsers = users.filter(
     (user) =>
-      ((user.name || user.fullName || "") // fallback if name missing
+      (user.name || user.fullName || "") // fallback if name missing
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
-        (user.email || "").toLowerCase().includes(searchTerm.toLowerCase()))
+      (user.email || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // 🔹 Delete user document from Firestore
@@ -84,29 +79,48 @@ export default function AdminUserManagement() {
               key={user.id}
               className="bg-white shadow-lg rounded-lg p-4 flex flex-col"
             >
-              <h2 className="text-lg font-semibold">
-                {user.name || user.fullName || "No Name"}
-              </h2>
-              <p className="text-gray-500">{user.email || "No Email"}</p>
-              {user.department && (
-                <p className="text-sm text-gray-400">Dept: {user.department}</p>
-              )}
-              {user.studentId && (
-                <p className="text-sm text-gray-400">Student ID: {user.studentId}</p>
-              )}
+              {/* Top Section: Profile + Info */}
+              <div className="flex items-center space-x-4 mb-3">
+                <img
+                  src={user.photoURL || "https://via.placeholder.com/50"}
+                  alt={user.name || user.fullName || "No Name"}
+                  className="w-16 h-16 rounded-full object-cover flex-shrink-0"
+                />
 
-              <div className="flex justify-between mt-4">
+                {/* User Info */}
+                <div className="flex flex-col min-w-[150px]">
+                  <h2 className="text-lg font-semibold truncate">
+                    {user.name || user.fullName || "No Name"}
+                  </h2>
+                  <p className="text-gray-500 text-sm truncate">
+                    {user.email || "No Email"}
+                  </p>
+                  {user.department && (
+                    <p className="text-xs text-gray-400 truncate">
+                      Dept: {user.department}
+                    </p>
+                  )}
+                  {user.studentId && (
+                    <p className="text-xs text-gray-400 truncate">
+                      Student ID: {user.studentId}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Bottom Section: Actions */}
+              <div className="flex justify-between mt-2">
                 <button
                   onClick={() => handleDelete(user.id)}
-                  className="flex items-center bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+                  className="flex items-center bg-red-500 text-white px-3 py-1.5 rounded-md hover:bg-red-600 text-sm"
                 >
-                  <FaTrash className="mr-2" /> Delete
+                  <FaTrash className="mr-1" /> Delete
                 </button>
                 <button
                   onClick={() => handleResetPassword(user.email)}
-                  className="flex items-center bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
+                  className="flex items-center bg-green-500 text-white px-3 py-1.5 rounded-md hover:bg-green-600 text-sm"
                 >
-                  <FaEnvelope className="mr-2" /> Reset Password
+                  <FaEnvelope className="mr-1" /> Reset
                 </button>
               </div>
             </div>
