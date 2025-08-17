@@ -12,6 +12,7 @@ import AdminAddClub from "./pages/AdminAddClub";
 import AdminPendingEvents from "./pages/AdminPendingEvents";
 import AdminUserManagement from "./pages/AdminUserManagement";
 import AdminProfile from "./pages/AdminProfile";
+import StudentProfile from "./pages/StudentProfile";
 import ClubDashboard from "./pages/ClubDashboard";
 import ClubEventsManagement from "./pages/ClubEventsManagement";
 import ClubMembersManagement from "./pages/ClubMembersManagement";
@@ -144,6 +145,7 @@ function App() {
           }
         />
       </Routes>
+      <StudentProfile />
     </div>
   );
 }
