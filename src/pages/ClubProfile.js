@@ -10,106 +10,98 @@ export default function ClubProfile() {
     totalMembers: 45,
     totalEvents: 12,
     events: [
-      { id: 1, title: "Event One", date: "2025-09-01" },
-      { id: 2, title: "Event Two", date: "2025-09-15" },
-      { id: 3, title: "Event Three", date: "2025-10-01" },
+      { id: 1, title: "Hackathon 2025", date: "2025-09-01" },
+      { id: 2, title: "AI in 2025", date: "2025-09-10" },
+      { id: 3, title: "Cybersecurity Trends", date: "2025-09-15" },
     ],
   });
 
-  const [imagePreview, setImagePreview] = useState(club.logo);
-  const [editDesc, setEditDesc] = useState(false);
+  const [editMode, setEditMode] = useState(false);
   const [password, setPassword] = useState({
     oldPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
 
-  // Handle description change
+  // Update club info
   const handleChange = (e) => {
     setClub({ ...club, [e.target.name]: e.target.value });
   };
 
-  // Handle logo change
+  // Update logo preview
   const handleLogoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result);
         setClub({ ...club, logo: reader.result });
       };
       reader.readAsDataURL(file);
     }
   };
 
-  // Handle password input change
+  // Update password fields
   const handlePasswordChange = (e) => {
     setPassword({ ...password, [e.target.name]: e.target.value });
   };
 
-  const handleSaveChanges = () => {
-    alert("Changes saved!");
-    setEditDesc(false);
+  const handleSave = () => {
+    // 🔹 Perform backend save for profile info & logo here
+    alert("Profile changes saved!");
+    setEditMode(false);
+  };
+
+  const handlePasswordSave = () => {
+    if (password.newPassword !== password.confirmPassword) {
+      alert("New password and confirm password do not match!");
+      return;
+    }
+    // 🔹 Perform backend password change here
+    alert("Password updated successfully!");
     setPassword({ oldPassword: "", newPassword: "", confirmPassword: "" });
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-tr from-indigo-50 to-blue-50 p-6 flex flex-col items-center">
-      {/* Profile Image */}
-      <div className="relative w-32 h-32 mx-auto mb-6">
-        <img
-          src={imagePreview}
-          alt="Club Logo"
-          className="rounded-full w-full h-full object-cover border-4 border-indigo-400"
-        />
-
-        <label
-          htmlFor="photo-upload"
-          className="absolute bottom-0 right-0 bg-white border border-gray-300 rounded-full p-2 shadow cursor-pointer hover:bg-gray-100"
-          title="Change Profile Photo"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 text-indigo-600"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15.232 5.232l3.536 3.536M9 13l6-6m2-2a2.828 2.828 0 114 4l-9 9H6v-6l9-9z"
-            />
-          </svg>
-        </label>
-        <input
-          id="photo-upload"
-          type="file"
-          accept="image/*"
-          onChange={handleLogoChange}
-          className="hidden"
-        />
-      </div>
-
-      {/* Club Info */}
+      {/* Profile Header */}
       <div className="bg-white shadow-lg rounded-3xl p-6 w-full max-w-2xl flex flex-col items-center">
-        <h2 className="text-3xl font-bold">{club.name}</h2>
+        <div className="relative group">
+          <img
+            src={club.logo}
+            alt="Club Logo"
+            className="w-32 h-32 rounded-full object-cover border-4 border-indigo-400"
+          />
+          {/* Edit button overlay */}
+          {editMode && (
+            <label className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 opacity-0 group-hover:opacity-100 rounded-full cursor-pointer transition">
+              <span className="text-white bg-indigo-600 px-3 py-1 rounded-xl text-sm hover:bg-indigo-700">
+                Edit
+              </span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleLogoChange}
+                className="hidden"
+              />
+            </label>
+          )}
+        </div>
+        <h2 className="text-3xl font-bold mt-4">{club.name}</h2>
         <p className="text-gray-500">{club.email}</p>
       </div>
 
-      {/* Description */}
+      {/* Description Section */}
       <div className="bg-white shadow-lg rounded-3xl p-6 w-full max-w-2xl mt-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-semibold">Description</h3>
           <button
-            onClick={() => setEditDesc(!editDesc)}
+            onClick={() => setEditMode(!editMode)}
             className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition"
           >
-            {editDesc ? "Cancel" : "Edit"}
+            {editMode ? "Cancel" : "Edit"}
           </button>
         </div>
-        {editDesc ? (
+        {editMode ? (
           <textarea
             name="description"
             value={club.description}
@@ -119,79 +111,69 @@ export default function ClubProfile() {
         ) : (
           <p className="text-gray-600">{club.description}</p>
         )}
+        {editMode && (
+          <div className="mt-4 flex justify-end gap-4">
+            <button
+              onClick={handleSave}
+              className="px-4 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition"
+            >
+              Save Changes
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Password Change */}
+      {/* Password Change Section */}
       <div className="bg-white shadow-lg rounded-3xl p-6 w-full max-w-2xl mt-6">
         <h3 className="text-xl font-semibold mb-4">Change Password</h3>
-        <div className="grid gap-4">
+        <div className="flex flex-col gap-4">
           <input
             type="password"
             name="oldPassword"
-            placeholder="Old Password"
             value={password.oldPassword}
             onChange={handlePasswordChange}
+            placeholder="Old Password"
             className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
           />
           <input
             type="password"
             name="newPassword"
-            placeholder="New Password"
             value={password.newPassword}
             onChange={handlePasswordChange}
+            placeholder="New Password"
             className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
           />
           <input
             type="password"
             name="confirmPassword"
-            placeholder="Confirm Password"
             value={password.confirmPassword}
             onChange={handlePasswordChange}
+            placeholder="Confirm New Password"
             className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
           />
+          <button
+            onClick={handlePasswordSave}
+            className="px-4 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition"
+          >
+            Update Password
+          </button>
         </div>
       </div>
 
-      {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 w-full max-w-2xl">
-        <div className="bg-white shadow-lg rounded-3xl p-6 flex flex-col items-center hover:scale-105 transition transform">
-          <p className="text-gray-400">Total Members</p>
-          <p className="text-3xl font-bold text-indigo-600">
-            {club.totalMembers}
-          </p>
-        </div>
-        <div className="bg-white shadow-lg rounded-3xl p-6 flex flex-col items-center hover:scale-105 transition transform">
-          <p className="text-gray-400">Total Events</p>
-          <p className="text-3xl font-bold text-indigo-600">
-            {club.totalEvents}
-          </p>
-        </div>
-      </div>
-
-      {/* All Events */}
+      {/* All Events Section */}
       <div className="bg-white shadow-lg rounded-3xl p-6 w-full max-w-2xl mt-6">
         <h3 className="text-xl font-semibold mb-4">All Events</h3>
-        <ul className="space-y-3">
+        <ul className="flex flex-col gap-2">
           {club.events.map((event) => (
             <li
               key={event.id}
-              className="p-3 border border-gray-200 rounded-xl hover:shadow-md transition flex justify-between"
+              className="p-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 transition flex justify-between"
             >
               <span>{event.title}</span>
               <span className="text-gray-500 text-sm">{event.date}</span>
             </li>
           ))}
         </ul>
-      </div>
-
-      {/* Save Button */}
-      <div className="mt-6">
-        <button
-          onClick={handleSaveChanges}
-          className="px-6 py-3 bg-green-500 text-white rounded-xl hover:bg-green-600 transition"
-        >
-          Save Changes
-        </button>
       </div>
     </div>
   );
