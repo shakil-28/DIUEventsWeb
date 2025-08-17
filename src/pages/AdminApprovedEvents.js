@@ -9,17 +9,20 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
 } from "recharts";
 
 export default function AdminApprovedEvents() {
   const [events, setEvents] = useState([]);
+  const [filteredEvents, setFilteredEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [departments, setDepartments] = useState([]);
+  const [clubs, setClubs] = useState([]);
+  const [selectedDepartment, setSelectedDepartment] = useState("All");
+  const [selectedClub, setSelectedClub] = useState("All");
 
+  // Fetch approved events
   const fetchApprovedEvents = async () => {
-    setLoading(true);
     try {
       const eventsRef = collection(db, "events");
       const q = query(eventsRef, where("approved", "==", true));
@@ -29,15 +32,63 @@ export default function AdminApprovedEvents() {
         ...doc.data(),
       }));
       setEvents(eventsData);
+      setFilteredEvents(eventsData);
     } catch (error) {
       console.error("Error fetching approved events:", error);
     }
-    setLoading(false);
+  };
+
+  // Fetch departments and clubs from users collection
+  const fetchDepartmentsAndClubs = async () => {
+    try {
+      const usersRef = collection(db, "users");
+
+      // Departments
+      const deptQuery = query(usersRef, where("role", "==", "department"));
+      const deptSnap = await getDocs(deptQuery);
+      const deptNames = deptSnap.docs.map((doc) => doc.data().name);
+
+      // Clubs
+      const clubQuery = query(usersRef, where("role", "==", "club"));
+      const clubSnap = await getDocs(clubQuery);
+      const clubNames = clubSnap.docs.map((doc) => doc.data().name);
+
+      setDepartments(["All", ...deptNames]);
+      setClubs(["All", ...clubNames]);
+    } catch (error) {
+      console.error("Error fetching departments and clubs:", error);
+    }
   };
 
   useEffect(() => {
-    fetchApprovedEvents();
+    const fetchData = async () => {
+      setLoading(true);
+      await fetchApprovedEvents();
+      await fetchDepartmentsAndClubs();
+      setLoading(false);
+    };
+    fetchData();
   }, []);
+
+  // Filter logic
+  useEffect(() => {
+    let filtered = events;
+
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter((e) => e.title.toLowerCase().includes(term));
+    }
+
+    if (selectedDepartment !== "All") {
+      filtered = filtered.filter((e) => e.department === selectedDepartment);
+    }
+
+    if (selectedClub !== "All") {
+      filtered = filtered.filter((e) => e.clubid === selectedClub);
+    }
+
+    setFilteredEvents(filtered);
+  }, [searchTerm, selectedDepartment, selectedClub, events]);
 
   if (loading)
     return <p className="text-center mt-10 text-gray-600">Loading events...</p>;
@@ -50,21 +101,54 @@ export default function AdminApprovedEvents() {
   });
 
   // Summary statistics
-  const totalEvents = events.length;
-  const totalLoved = events.reduce(
+  const totalEvents = filteredEvents.length;
+  const totalLoved = filteredEvents.reduce(
     (acc, e) => acc + (e.lovedUsers?.length || 0),
     0
   );
-  const totalInterested = events.reduce(
+  const totalInterested = filteredEvents.reduce(
     (acc, e) => acc + (e.interestedUsers?.length || 0),
     0
   );
 
   return (
     <div className="min-h-screen bg-gradient-to-tr from-indigo-50 to-blue-50 p-6">
-      <h1 className="text-4xl font-extrabold text-center text-indigo-700 mb-8">
+      <h1 className="text-4xl font-extrabold text-center text-indigo-700 mb-6">
         Admin Dashboard: Approved Events
       </h1>
+
+      {/* Search & Filters */}
+      <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-8">
+        <input
+          type="text"
+          placeholder="Search events by title..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full md:w-1/3 px-4 py-3 rounded-xl border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
+        />
+        <select
+          value={selectedDepartment}
+          onChange={(e) => setSelectedDepartment(e.target.value)}
+          className="w-full md:w-1/4 px-4 py-3 rounded-xl border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
+        >
+          {departments.map((dept, idx) => (
+            <option key={idx} value={dept}>
+              {dept}
+            </option>
+          ))}
+        </select>
+        <select
+          value={selectedClub}
+          onChange={(e) => setSelectedClub(e.target.value)}
+          className="w-full md:w-1/4 px-4 py-3 rounded-xl border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
+        >
+          {clubs.map((club, idx) => (
+            <option key={idx} value={club}>
+              {club}
+            </option>
+          ))}
+        </select>
+      </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
@@ -84,7 +168,7 @@ export default function AdminApprovedEvents() {
 
       {/* Event Cards */}
       <div className="grid md:grid-cols-2 gap-8">
-        {events.map((event) => {
+        {filteredEvents.map((event) => {
           const engagement = getEngagementData(event);
           return (
             <div
@@ -106,7 +190,7 @@ export default function AdminApprovedEvents() {
               </p>
 
               {/* Engagement Bar Chart */}
-              <div className="mb-6 bg-gray-50 p-4 rounded-2xl shadow-inner">
+              <div className="bg-gray-50 p-4 rounded-2xl shadow-inner">
                 <h3 className="font-semibold mb-2 text-gray-700">Engagement</h3>
                 <ResponsiveContainer width="100%" height={180}>
                   <BarChart data={[{ name: event.title, ...engagement }]}>
@@ -121,36 +205,6 @@ export default function AdminApprovedEvents() {
                       radius={[8, 8, 0, 0]}
                     />
                   </BarChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* User Distribution Pie Chart */}
-              <div className="bg-gray-50 p-4 rounded-2xl shadow-inner">
-                <h3 className="font-semibold mb-2 text-gray-700">User Distribution</h3>
-                <ResponsiveContainer width="100%" height={180}>
-                  <PieChart>
-                    <Pie
-                      data={[
-                        { name: "Loved", value: engagement.Loved },
-                        { name: "Interested", value: engagement.Interested },
-                      ]}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={60}
-                      label
-                    >
-                      {Object.values(engagement).map((_, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
                 </ResponsiveContainer>
               </div>
             </div>
