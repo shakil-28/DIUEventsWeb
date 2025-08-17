@@ -4,7 +4,6 @@ export function NavBar() {
   const [theme, setTheme] = useState("light");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  
 
   useEffect(() => {
     const storedTheme = localStorage.getItem("theme");

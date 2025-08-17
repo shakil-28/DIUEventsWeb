@@ -1,198 +1,324 @@
-// src/pages/ClubProfile.js
-import React, { useState } from "react";
+// AdminProfile.js
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { auth, db } from "../firebase/config";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import {
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updateProfile,
+} from "firebase/auth";
+import AdminNavBar from "../components/AdminNavBar";
 
-export default function ClubProfile() {
-  const [club, setClub] = useState({
-    logo: "https://via.placeholder.com/120",
-    name: "CPC",
-    email: "awesomeclub@example.com",
-    description: "This is a short description about the club.",
-    totalMembers: 45,
-    totalEvents: 12,
-    events: [
-      { id: 1, title: "Event One", date: "2025-09-01" },
-      { id: 2, title: "Event Two", date: "2025-09-15" },
-      { id: 3, title: "Event Three", date: "2025-10-01" },
-    ],
+const AdminProfile = () => {
+
+  const [adminData, setAdminData] = useState({
+    name: "",
+    email: "",
+    role: "Admin",
+    logoUrl: "",
+    logoPublicId: "",
   });
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
 
-  const [imagePreview, setImagePreview] = useState(club.logo);
-  const [editDesc, setEditDesc] = useState(false);
-  const [password, setPassword] = useState({
-    oldPassword: "",
+  const [passwords, setPasswords] = useState({
+    currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
+  const [passwordMsg, setPasswordMsg] = useState("");
 
-  // Handle description change
-  const handleChange = (e) => {
-    setClub({ ...club, [e.target.name]: e.target.value });
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem("theme");
+    if (saved) return saved === "dark";
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  });
+
+  // Apply dark mode
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [darkMode]);
+
+  // Fetch admin data from Firestore
+  useEffect(() => {
+    const fetchAdminData = async () => {
+      if (!auth.currentUser) return;
+      const docRef = doc(db, "users", auth.currentUser.uid);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        setAdminData({
+          name: docSnap.data().name || auth.currentUser.displayName || "",
+          email: auth.currentUser.email,
+          role: "Admin",
+          logoUrl: docSnap.data().logoUrl || auth.currentUser.photoURL || "",
+          logoPublicId: docSnap.data().logoPublicId || "",
+        });
+      }
+      setLoading(false);
+    };
+    fetchAdminData();
+  }, []);
+
+  const handleInputChange = (e) => {
+    setAdminData({ ...adminData, [e.target.name]: e.target.value });
   };
 
-  // Handle logo change
-  const handleLogoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-        setClub({ ...club, logo: reader.result });
-      };
-      reader.readAsDataURL(file);
+  // Upload image to Cloudinary
+  const uploadImage = async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "diu_profile");
+
+      const res = await fetch(
+        "https://api.cloudinary.com/v1_1/da4tktbus/image/upload",
+        { method: "POST", body: formData }
+      );
+      const data = await res.json();
+      return data; // {secure_url, public_id}
+    } catch (err) {
+      console.error("Image upload failed:", err);
+      return null;
     }
   };
 
-  // Handle password input change
-  const handlePasswordChange = (e) => {
-    setPassword({ ...password, [e.target.name]: e.target.value });
+  const handleProfileUpdate = async () => {
+    setUpdating(true);
+    try {
+      let imageData = null;
+
+      if (selectedFile) {
+        // Upload new image
+        imageData = await uploadImage(selectedFile);
+
+        // Delete old image via backend if exists
+        if (adminData.logoPublicId) {
+          try {
+            await fetch("/api/delete-cloudinary-image", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ publicId: adminData.logoPublicId }),
+            });
+          } catch (err) {
+            console.error("Failed to delete old image:", err);
+          }
+        }
+
+        // Update Firebase Auth profile
+        await updateProfile(auth.currentUser, {
+          photoURL: imageData.secure_url,
+        });
+      }
+
+      // Update Firestore
+      const docRef = doc(db, "users", auth.currentUser.uid);
+      await updateDoc(docRef, {
+        name: adminData.name,
+        logoUrl: imageData ? imageData.secure_url : adminData.logoUrl,
+        logoPublicId: imageData ? imageData.public_id : adminData.logoPublicId,
+      });
+
+      // Update local state immediately
+      setAdminData({
+        ...adminData,
+        logoUrl: imageData ? imageData.secure_url : adminData.logoUrl,
+        logoPublicId: imageData ? imageData.public_id : adminData.logoPublicId,
+      });
+      setSelectedFile(null);
+      alert("Profile updated successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update profile.");
+    }
+    setUpdating(false);
   };
 
-  const handleSaveChanges = () => {
-    alert("Changes saved!");
-    setEditDesc(false);
-    setPassword({ oldPassword: "", newPassword: "", confirmPassword: "" });
+  const handlePasswordChange = async () => {
+    setPasswordMsg("");
+    if (passwords.newPassword !== passwords.confirmPassword) {
+      setPasswordMsg("New password and confirm password do not match.");
+      return;
+    }
+    try {
+      const credential = EmailAuthProvider.credential(
+        auth.currentUser.email,
+        passwords.currentPassword
+      );
+      await reauthenticateWithCredential(auth.currentUser, credential);
+      await updatePassword(auth.currentUser, passwords.newPassword);
+      setPasswordMsg("Password updated successfully!");
+      setPasswords({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+    } catch (err) {
+      console.error(err);
+      setPasswordMsg("Failed to update password. Check your current password.");
+    }
   };
+
+  // Dummy props for AdminNavBar
+  const toggleSidebar = () => {};
+  const sidebarVisible = false;
+  const toggleDarkMode = () => setDarkMode(!darkMode);
+  const handleLogout = () => {};
+
+  if (loading) return <p className="text-center mt-10">Loading profile...</p>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-tr from-indigo-50 to-blue-50 p-6 flex flex-col items-center">
-      {/* Profile Image */}
-      <div className="relative w-32 h-32 mx-auto mb-6">
-        <img
-          src={imagePreview}
-          alt="Club Logo"
-          className="rounded-full w-full h-full object-cover border-4 border-indigo-400"
-        />
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-500">
+      <AdminNavBar
+        toggleSidebar={toggleSidebar}
+        sidebarVisible={sidebarVisible}
+        darkMode={darkMode}
+        toggleDarkMode={toggleDarkMode}
+        handleLogout={handleLogout}
+      />
 
-        <label
-          htmlFor="photo-upload"
-          className="absolute bottom-0 right-0 bg-white border border-gray-300 rounded-full p-2 shadow cursor-pointer hover:bg-gray-100"
-          title="Change Profile Photo"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 text-indigo-600"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15.232 5.232l3.536 3.536M9 13l6-6m2-2a2.828 2.828 0 114 4l-9 9H6v-6l9-9z"
-            />
-          </svg>
-        </label>
-        <input
-          id="photo-upload"
-          type="file"
-          accept="image/*"
-          onChange={handleLogoChange}
-          className="hidden"
-        />
-      </div>
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow mt-6 p-6 transition-colors duration-500">
+          <h1 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-100">
+            Admin Profile
+          </h1>
 
-      {/* Club Info */}
-      <div className="bg-white shadow-lg rounded-3xl p-6 w-full max-w-2xl flex flex-col items-center">
-        <h2 className="text-3xl font-bold">{club.name}</h2>
-        <p className="text-gray-500">{club.email}</p>
-      </div>
+          {/* Profile Info */}
+          <div className="mb-6 space-y-4">
+            <div>
+              <label className="block mb-2 text-gray-700 dark:text-gray-200">
+                Name
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={adminData.name}
+                onChange={handleInputChange}
+                className="w-full p-2 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+              />
+            </div>
 
-      {/* Description */}
-      <div className="bg-white shadow-lg rounded-3xl p-6 w-full max-w-2xl mt-6">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold">Description</h3>
-          <button
-            onClick={() => setEditDesc(!editDesc)}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition"
-          >
-            {editDesc ? "Cancel" : "Edit"}
-          </button>
-        </div>
-        {editDesc ? (
-          <textarea
-            name="description"
-            value={club.description}
-            onChange={handleChange}
-            className="w-full h-32 p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 transition resize-none"
-          />
-        ) : (
-          <p className="text-gray-600">{club.description}</p>
-        )}
-      </div>
+            <div>
+              <label className="block mb-2 text-gray-700 dark:text-gray-200">
+                Email (read-only)
+              </label>
+              <input
+                type="email"
+                value={adminData.email}
+                readOnly
+                className="w-full p-2 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+              />
+            </div>
 
-      {/* Password Change */}
-      <div className="bg-white shadow-lg rounded-3xl p-6 w-full max-w-2xl mt-6">
-        <h3 className="text-xl font-semibold mb-4">Change Password</h3>
-        <div className="grid gap-4">
-          <input
-            type="password"
-            name="oldPassword"
-            placeholder="Old Password"
-            value={password.oldPassword}
-            onChange={handlePasswordChange}
-            className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
-          />
-          <input
-            type="password"
-            name="newPassword"
-            placeholder="New Password"
-            value={password.newPassword}
-            onChange={handlePasswordChange}
-            className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
-          />
-          <input
-            type="password"
-            name="confirmPassword"
-            placeholder="Confirm Password"
-            value={password.confirmPassword}
-            onChange={handlePasswordChange}
-            className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
-          />
-        </div>
-      </div>
+            <div>
+              <label className="block mb-2 text-gray-700 dark:text-gray-200">
+                Role
+              </label>
+              <input
+                type="text"
+                value="Admin"
+                readOnly
+                className="w-full p-2 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+              />
+            </div>
 
-      {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 w-full max-w-2xl">
-        <div className="bg-white shadow-lg rounded-3xl p-6 flex flex-col items-center hover:scale-105 transition transform">
-          <p className="text-gray-400">Total Members</p>
-          <p className="text-3xl font-bold text-indigo-600">
-            {club.totalMembers}
-          </p>
-        </div>
-        <div className="bg-white shadow-lg rounded-3xl p-6 flex flex-col items-center hover:scale-105 transition transform">
-          <p className="text-gray-400">Total Events</p>
-          <p className="text-3xl font-bold text-indigo-600">
-            {club.totalEvents}
-          </p>
-        </div>
-      </div>
+            <div>
+              <label className="block mb-2 text-gray-700 dark:text-gray-200">
+                Profile Picture
+              </label>
+              <div className="flex items-center gap-4">
+                {selectedFile ? (
+                  <img
+                    src={URL.createObjectURL(selectedFile)}
+                    alt="Preview"
+                    className="w-20 h-20 rounded-full object-cover border border-gray-400 dark:border-gray-600"
+                  />
+                ) : adminData.logoUrl ? (
+                  <img
+                    src={adminData.logoUrl}
+                    alt="Profile"
+                    className="w-20 h-20 rounded-full object-cover border border-gray-400 dark:border-gray-600"
+                  />
+                ) : (
+                  <div className="w-20 h-20 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-gray-500">
+                    📷
+                  </div>
+                )}
+                <label className="cursor-pointer inline-flex items-center px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg shadow transition">
+                  Choose Image
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setSelectedFile(e.target.files[0])}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+            </div>
 
-      {/* All Events */}
-      <div className="bg-white shadow-lg rounded-3xl p-6 w-full max-w-2xl mt-6">
-        <h3 className="text-xl font-semibold mb-4">All Events</h3>
-        <ul className="space-y-3">
-          {club.events.map((event) => (
-            <li
-              key={event.id}
-              className="p-3 border border-gray-200 rounded-xl hover:shadow-md transition flex justify-between"
+            <button
+              onClick={handleProfileUpdate}
+              disabled={updating}
+              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
             >
-              <span>{event.title}</span>
-              <span className="text-gray-500 text-sm">{event.date}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
+              {updating ? "Updating..." : "Update Profile"}
+            </button>
+          </div>
 
-      {/* Save Button */}
-      <div className="mt-6">
-        <button
-          onClick={handleSaveChanges}
-          className="px-6 py-3 bg-green-500 text-white rounded-xl hover:bg-green-600 transition"
-        >
-          Save Changes
-        </button>
+          {/* Password Change */}
+          <div className="mb-6 space-y-2">
+            <h2 className="text-xl font-semibold mb-2 text-gray-800 dark:text-gray-100">
+              Change Password
+            </h2>
+            <input
+              type="password"
+              placeholder="Current Password"
+              value={passwords.currentPassword}
+              onChange={(e) =>
+                setPasswords({ ...passwords, currentPassword: e.target.value })
+              }
+              className="w-full p-2 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+            />
+            <input
+              type="password"
+              placeholder="New Password"
+              value={passwords.newPassword}
+              onChange={(e) =>
+                setPasswords({ ...passwords, newPassword: e.target.value })
+              }
+              className="w-full p-2 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+            />
+            <input
+              type="password"
+              placeholder="Confirm New Password"
+              value={passwords.confirmPassword}
+              onChange={(e) =>
+                setPasswords({ ...passwords, confirmPassword: e.target.value })
+              }
+              className="w-full p-2 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+            />
+            <button
+              onClick={handlePasswordChange}
+              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+            >
+              Change Password
+            </button>
+            {passwordMsg && (
+              <p className="text-sm text-red-500 mt-1">{passwordMsg}</p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default AdminProfile;

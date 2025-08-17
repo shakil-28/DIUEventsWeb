@@ -69,22 +69,20 @@ export default function ClubProfile() {
           <img
             src={club.logo}
             alt="Club Logo"
-            className="w-32 h-32 rounded-full object-cover border-4 border-indigo-400"
+            className="w-32 h-32 rounded-full object-cover border-4 border-indigo-400 cursor-pointer"
           />
-          {/* Edit button overlay */}
-          {editMode && (
-            <label className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 opacity-0 group-hover:opacity-100 rounded-full cursor-pointer transition">
-              <span className="text-white bg-indigo-600 px-3 py-1 rounded-xl text-sm hover:bg-indigo-700">
-                Edit
-              </span>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleLogoChange}
-                className="hidden"
-              />
-            </label>
-          )}
+          {/* Always clickable overlay */}
+          <label className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 opacity-0 hover:opacity-100 rounded-full cursor-pointer transition">
+            <span className="text-white bg-indigo-600 px-3 py-1 rounded-xl text-sm hover:bg-indigo-700">
+              Change Logo
+            </span>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleLogoChange}
+              className="hidden"
+            />
+          </label>
         </div>
         <h2 className="text-3xl font-bold mt-4">{club.name}</h2>
         <p className="text-gray-500">{club.email}</p>
@@ -163,14 +161,39 @@ export default function ClubProfile() {
       {/* All Events Section */}
       <div className="bg-white shadow-lg rounded-3xl p-6 w-full max-w-2xl mt-6">
         <h3 className="text-xl font-semibold mb-4">All Events</h3>
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-4">
           {club.events.map((event) => (
             <li
               key={event.id}
-              className="p-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 transition flex justify-between"
+              className="p-4 rounded-2xl bg-gradient-to-r from-indigo-100 via-purple-100 to-pink-100 shadow-md hover:shadow-xl transition transform hover:-translate-y-1 flex justify-between items-center"
             >
-              <span>{event.title}</span>
-              <span className="text-gray-500 text-sm">{event.date}</span>
+              <div className="flex flex-col">
+                <span className="font-semibold text-lg text-indigo-800">
+                  {event.title}
+                </span>
+                <span className="text-gray-600 mt-1 flex items-center gap-1">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 text-gray-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                  {event.date}
+                </span>
+              </div>
+              <div>
+                <span className="px-3 py-1 bg-indigo-600 text-white rounded-full text-sm font-medium">
+                  View
+                </span>
+              </div>
             </li>
           ))}
         </ul>

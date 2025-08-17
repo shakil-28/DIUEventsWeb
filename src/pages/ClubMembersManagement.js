@@ -2,11 +2,11 @@
 import React, { useState } from "react";
 import { FaCheck, FaTimes, FaTrash, FaSearch } from "react-icons/fa";
 
-export default function MembersManagement() {
-  const [activeTab, setActiveTab] = useState("members");
-  const [searchTerm, setSearchTerm] = useState("");
+export default function ClubMembersManagement() {
+  const [activeTab] = useState("members");
+  const [searchTerm] = useState("");
 
-  const [members, setMembers] = useState([
+  const [members] = useState([
     {
       id: 1,
       name: "Alice Smith",
@@ -21,7 +21,7 @@ export default function MembersManagement() {
     },
   ]);
 
-  const [pendingRequests, setPendingRequests] = useState([
+  const [pendingRequests] = useState([
     {
       id: 3,
       name: "Charlie Brown",
