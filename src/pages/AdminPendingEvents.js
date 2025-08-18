@@ -21,7 +21,7 @@ export default function AdminPendingEvents() {
     setLoading(true);
     try {
       const eventsRef = collection(db, "events");
-      const q = query(eventsRef, where("approved", "==", false));
+      const q = query(eventsRef, where("status", "==", "pending"));
       const snapshot = await getDocs(q);
       const eventsData = snapshot.docs.map((doc) => ({
         id: doc.id,
@@ -44,9 +44,9 @@ export default function AdminPendingEvents() {
       const eventRef = doc(db, "events", id);
 
       if (approve) {
-        await updateDoc(eventRef, { approved: true });
+        await updateDoc(eventRef, { status: "approved" });
       } else {
-        await deleteDoc(eventRef);
+        await deleteDoc(eventRef); // or set status to "rejected" if you don't want to delete
       }
 
       setEvents((prev) => prev.filter((e) => e.id !== id));
@@ -114,9 +114,13 @@ export default function AdminPendingEvents() {
                     {event.title}
                   </h2>
                   <p className="text-gray-600 dark:text-gray-300">
-                    {new Date(event.startingTime.seconds * 1000).toLocaleString()}{" "}
+                    {new Date(
+                      event.startingTime.seconds * 1000
+                    ).toLocaleString()}{" "}
                     |{" "}
-                    {new Date(event.endTime.seconds * 1000).toLocaleTimeString()}
+                    {new Date(
+                      event.endTime.seconds * 1000
+                    ).toLocaleTimeString()}
                   </p>
                   <p className="mt-1 font-medium text-yellow-600 dark:text-yellow-400">
                     Status: {event.approved ? "approved" : "pending"}

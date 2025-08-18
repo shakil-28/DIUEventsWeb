@@ -16,6 +16,9 @@ import ClubDashboard from "./pages/ClubDashboard";
 import ClubEventsManagement from "./pages/ClubEventsManagement";
 import ClubMembersManagement from "./pages/ClubMembersManagement";
 import ClubProfile from "./pages/ClubProfile";
+import StudentExplore from "./pages/StudentExplore";
+import StudentProfile from "./pages/StudentProfile";
+import EventDetailsPage from "./pages/EventDetailsPage"; // default import
 
 function App() {
   // Setup dark theme from localStorage or system preference
@@ -108,6 +111,7 @@ function App() {
           }
         />
 
+        {/* Club routes */}
         <Route
           path="/club-dashboard"
           element={
@@ -116,7 +120,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/club-events-management"
           element={
@@ -125,7 +128,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/club-members-management"
           element={
@@ -134,12 +136,39 @@ function App() {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/club-profile"
           element={
             <ProtectedRoute requiredRole="club">
               <ClubProfile />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Student routes */}
+        <Route
+          path="/student-explore"
+          element={
+            <ProtectedRoute requiredRole="student">
+              <StudentExplore />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/student-profile"
+          element={
+            <ProtectedRoute requiredRole="student">
+              <StudentProfile />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Event details page */}
+        <Route
+          path="/event/:eventId"
+          element={
+            <ProtectedRoute>
+              <EventDetailsPage />
             </ProtectedRoute>
           }
         />

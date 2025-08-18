@@ -1,34 +1,158 @@
 // src/pages/MembersManagement.js
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaCheck, FaTimes, FaTrash, FaSearch } from "react-icons/fa";
 import ClubNavBar from "../components/ClubNavBar";
+import { db, auth } from "../firebase/config";
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  arrayRemove,
+  arrayUnion,
+} from "firebase/firestore";
 
 export default function ClubMembersManagement() {
   const [activeTab, setActiveTab] = useState("members");
   const [searchTerm, setSearchTerm] = useState("");
+  const [members, setMembers] = useState([]);
+  const [pendingRequests, setPendingRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const [members] = useState([
-    { id: 1, name: "Alice Smith", email: "alice@example.com", joinDate: "2025-01-10" },
-    { id: 2, name: "Bob Johnson", email: "bob@example.com", joinDate: "2025-02-15" },
-  ]);
+  const clubUid = auth.currentUser.uid; // currently logged-in club
 
-  const [pendingRequests] = useState([
-    { id: 3, name: "Charlie Brown", email: "charlie@example.com", joinDate: "2025-08-01" },
-  ]);
+  // Fetch members and pending requests
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        setLoading(true);
 
-  const filteredUsers = (activeTab === "members" ? members : pendingRequests).filter(
+        // Get club document
+        const clubRef = doc(db, "users", clubUid);
+        const clubSnap = await getDoc(clubRef);
+
+        if (!clubSnap.exists()) {
+          console.error("Club not found");
+          return;
+        }
+
+        const clubData = clubSnap.data();
+        const memberIds = clubData.members || [];
+        const pendingIds = clubData.memberRequests || [];
+
+        // Fetch member user documents
+        const membersPromises = memberIds.map((uid) =>
+          getDoc(doc(db, "users", uid))
+        );
+        const membersSnaps = await Promise.all(membersPromises);
+        const membersData = membersSnaps
+          .filter((snap) => snap.exists())
+          .map((snap) => ({ uid: snap.id, ...snap.data() }));
+
+        // Fetch pending request user documents
+        const pendingPromises = pendingIds.map((uid) =>
+          getDoc(doc(db, "users", uid))
+        );
+        const pendingSnaps = await Promise.all(pendingPromises);
+        const pendingData = pendingSnaps
+          .filter((snap) => snap.exists())
+          .map((snap) => ({ uid: snap.id, ...snap.data() }));
+
+        setMembers(membersData);
+        setPendingRequests(pendingData);
+      } catch (error) {
+        console.error("Error fetching members:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMembers();
+  }, [clubUid]);
+
+  const handleRemove = async (memberUid) => {
+    if (!window.confirm("Are you sure you want to remove this member?")) return;
+
+    try {
+      // Remove club UID from student's selectedClubs
+      const studentRef = doc(db, "users", memberUid);
+      await updateDoc(studentRef, {
+        selectedClubs: arrayRemove(clubUid),
+      });
+
+      // Remove student UID from club's members array
+      const clubRef = doc(db, "users", clubUid);
+      await updateDoc(clubRef, {
+        members: arrayRemove(memberUid),
+      });
+
+      // Update local state
+      setMembers((prev) => prev.filter((m) => m.uid !== memberUid));
+    } catch (error) {
+      console.error("Error removing member:", error);
+    }
+  };
+
+  const handleApprove = async (pendingUid) => {
+    try {
+      const clubRef = doc(db, "users", clubUid);
+      const studentRef = doc(db, "users", pendingUid);
+
+      // Remove from memberRequests and add to members
+      await updateDoc(clubRef, {
+        memberRequests: arrayRemove(pendingUid),
+        members: arrayUnion(pendingUid),
+      });
+
+      // Add club UID to student's selectedClubs
+      await updateDoc(studentRef, {
+        selectedClubs: arrayUnion(clubUid),
+      });
+
+      // Fetch student data once
+      const studentSnap = await getDoc(studentRef);
+      const studentData = studentSnap.data() || {};
+
+      // Update local state
+      setPendingRequests((prev) => prev.filter((p) => p.uid !== pendingUid));
+      setMembers((prev) => [...prev, { uid: pendingUid, ...studentData }]);
+    } catch (error) {
+      console.error("Error approving member:", error);
+    }
+  };
+
+  const handleReject = async (pendingUid) => {
+    try {
+      const clubRef = doc(db, "users", clubUid);
+      const studentRef = doc(db, "users", pendingUid);
+
+      // Remove from club's memberRequests
+      await updateDoc(clubRef, {
+        memberRequests: arrayRemove(pendingUid),
+      });
+
+      // Remove club UID from student's selectedClubs
+      await updateDoc(studentRef, {
+        selectedClubs: arrayRemove(clubUid),
+      });
+
+      // Update local state
+      setPendingRequests((prev) => prev.filter((p) => p.uid !== pendingUid));
+    } catch (error) {
+      console.error("Error rejecting member:", error);
+    }
+  };
+
+  const filteredUsers = (
+    activeTab === "members" ? members : pendingRequests
+  ).filter(
     (user) =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleApprove = (id) => alert(`Approved user ID: ${id}`);
-  const handleReject = (id) => alert(`Rejected user ID: ${id}`);
-  const handleRemove = (id) => {
-    if (window.confirm("Are you sure you want to remove this member?")) {
-      alert(`Removed user ID: ${id}`);
-    }
-  };
+  if (loading) {
+    return <p className="text-center py-16">Loading members...</p>;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-50">
@@ -82,26 +206,27 @@ export default function ClubMembersManagement() {
         {filteredUsers.length > 0 ? (
           filteredUsers.map((user) => (
             <div
-              key={user.id}
+              key={user.uid}
               className="bg-white p-6 rounded-3xl shadow-lg hover:shadow-xl transition transform hover:scale-105 flex flex-col justify-between"
             >
               <div>
-                <h2 className="text-xl font-semibold text-indigo-700 mb-1">{user.name}</h2>
+                <h2 className="text-xl font-semibold text-indigo-700 mb-1">
+                  {user.fullName}
+                </h2>
                 <p className="text-gray-600 mb-1">{user.email}</p>
-                <p className="text-gray-400 text-sm">Joined: {user.joinDate}</p>
               </div>
 
               <div className="flex justify-between mt-4 gap-2">
                 {activeTab === "pending" ? (
                   <>
                     <button
-                      onClick={() => handleApprove(user.id)}
+                      onClick={() => handleApprove(user.uid)}
                       className="flex-1 bg-green-500 text-white px-3 py-2 rounded-xl hover:bg-green-600 transition flex items-center justify-center"
                     >
                       <FaCheck className="mr-1" /> Approve
                     </button>
                     <button
-                      onClick={() => handleReject(user.id)}
+                      onClick={() => handleReject(user.uid)}
                       className="flex-1 bg-red-500 text-white px-3 py-2 rounded-xl hover:bg-red-600 transition flex items-center justify-center"
                     >
                       <FaTimes className="mr-1" /> Reject
@@ -109,7 +234,7 @@ export default function ClubMembersManagement() {
                   </>
                 ) : (
                   <button
-                    onClick={() => handleRemove(user.id)}
+                    onClick={() => handleRemove(user.uid)}
                     className="flex-1 bg-gray-400 text-white px-3 py-2 rounded-xl hover:bg-gray-500 transition flex items-center justify-center"
                   >
                     <FaTrash className="mr-1" /> Remove
@@ -119,7 +244,9 @@ export default function ClubMembersManagement() {
             </div>
           ))
         ) : (
-          <p className="text-center col-span-full text-gray-500">No users found.</p>
+          <p className="text-center col-span-full text-gray-500">
+            No users found.
+          </p>
         )}
       </div>
     </div>
