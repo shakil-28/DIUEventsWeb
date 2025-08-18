@@ -14,13 +14,14 @@ const AdminAddClub = () => {
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [darkMode, setDarkMode] = useState(false); // 🌙 theme toggle
 
   // Upload image to Cloudinary
   const uploadImage = async (file) => {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("upload_preset", "diu_profile"); // your Cloudinary preset
+      formData.append("upload_preset", "diu_profile"); // Cloudinary preset
 
       const res = await fetch(
         "https://api.cloudinary.com/v1_1/da4tktbus/image/upload",
@@ -48,7 +49,11 @@ const AdminAddClub = () => {
 
     try {
       // 1️⃣ Create Firebase Auth user
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       const uid = userCredential.user.uid;
 
       // 2️⃣ Upload image if selected
@@ -71,13 +76,13 @@ const AdminAddClub = () => {
         email,
         role: "club",
         description: description || "",
-        logoUrl: logoUrl,
+        logoUrl,
         members: [],
         memberRequests: [],
         createdAt: serverTimestamp(),
       });
 
-      setSuccessMsg("Club account created successfully!");
+      setSuccessMsg("🎉 Club account created successfully!");
       setClubName("");
       setEmail("");
       setPassword("");
@@ -90,92 +95,104 @@ const AdminAddClub = () => {
     setLoading(false);
   };
 
-  // Dummy props for AdminNavBar
+  // Theme toggle handler
+  const toggleDarkMode = () => setDarkMode((prev) => !prev);
+
+  // Dummy sidebar + logout (can connect later)
   const toggleSidebar = () => {};
   const sidebarVisible = false;
-  const darkMode = false;
-  const toggleDarkMode = () => {};
   const handleLogout = () => {};
 
   return (
-    <div className="min-h-screen bg-gradient-to-tr from-indigo-50 to-blue-50">
-      <AdminNavBar
-        toggleSidebar={toggleSidebar}
-        sidebarVisible={sidebarVisible}
-        darkMode={darkMode}
-        toggleDarkMode={toggleDarkMode}
-        handleLogout={handleLogout}
-      />
+    <div className={`${darkMode ? "dark" : ""} min-h-screen`}>
+      <div className="min-h-screen bg-gradient-to-tr from-indigo-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300">
+        <AdminNavBar
+          toggleSidebar={toggleSidebar}
+          sidebarVisible={sidebarVisible}
+          darkMode={darkMode}
+          toggleDarkMode={toggleDarkMode}
+          handleLogout={handleLogout}
+        />
 
-      <div className="max-w-md mx-auto mt-10 p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-lg">
-        <h2 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100 text-center">
-          Add New Club
-        </h2>
+        <div className="max-w-md mx-auto mt-10 p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-xl transition-colors duration-300">
+          <h2 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100 text-center">
+            Add New Club
+          </h2>
 
-        {successMsg && <p className="text-green-500 mb-4">{successMsg}</p>}
-        {errorMsg && <p className="text-red-500 mb-4">{errorMsg}</p>}
+          {successMsg && (
+            <p className="text-green-600 dark:text-green-400 mb-4 font-medium">
+              {successMsg}
+            </p>
+          )}
+          {errorMsg && (
+            <p className="text-red-600 dark:text-red-400 mb-4 font-medium">
+              {errorMsg}
+            </p>
+          )}
 
-        <form onSubmit={handleAddClub} className="flex flex-col gap-4">
-          <input
-            type="text"
-            placeholder="Club Name"
-            value={clubName}
-            onChange={(e) => setClubName(e.target.value)}
-            className="p-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-          />
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="p-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="p-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-          />
-          <textarea
-            placeholder="Description (optional)"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="p-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition resize-none"
-          />
+          <form onSubmit={handleAddClub} className="flex flex-col gap-4">
+            <input
+              type="text"
+              placeholder="Club Name"
+              value={clubName}
+              onChange={(e) => setClubName(e.target.value)}
+              className="p-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 transition"
+            />
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="p-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 transition"
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="p-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 transition"
+            />
+            <textarea
+              placeholder="Description (optional)"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="p-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 transition resize-none"
+              rows={3}
+            />
 
-          {/* Image Upload */}
-          <div className="flex items-center gap-4">
-            {selectedFile ? (
-              <img
-                src={URL.createObjectURL(selectedFile)}
-                alt="Preview"
-                className="w-20 h-20 rounded-full object-cover border border-gray-400 dark:border-gray-600"
-              />
-            ) : (
-              <div className="w-20 h-20 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-gray-500 text-xl">
-                📷
-              </div>
-            )}
-            <label className="cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition">
-              Choose Logo
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setSelectedFile(e.target.files[0])}
-                className="hidden"
-              />
-            </label>
-          </div>
+            {/* Image Upload */}
+            <div className="flex items-center gap-4">
+              {selectedFile ? (
+                <img
+                  src={URL.createObjectURL(selectedFile)}
+                  alt="Preview"
+                  className="w-20 h-20 rounded-full object-cover border border-gray-400 dark:border-gray-600 shadow-md"
+                />
+              ) : (
+                <div className="w-20 h-20 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-gray-500 text-xl shadow-inner">
+                  📷
+                </div>
+              )}
+              <label className="cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition">
+                Choose Logo
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setSelectedFile(e.target.files[0])}
+                  className="hidden"
+                />
+              </label>
+            </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="mt-4 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition"
-          >
-            {loading ? "Creating..." : "Add Club"}
-          </button>
-        </form>
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white py-3 rounded-xl font-semibold transition"
+            >
+              {loading ? "Creating..." : "Add Club"}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );
